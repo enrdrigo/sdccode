@@ -1,9 +1,5 @@
 import numpy as np
-import os
-import matplotlib.pyplot as plt
-import matplotlib.ticker as plticker
-from numba import njit, prange, objmode
-import time
+#from numba import njit, prange, objmode
 
 #-----------------------------------------------------------------------------------------------------------------------
 #COMPUTES THE STATIC DIELECTRIC CONSTANT (SDC) AT A GIVEN PHYSICAL G VECTOR. HERE WE RESTRICT OURSELVES IN THE DIRECTION (1,0,0).

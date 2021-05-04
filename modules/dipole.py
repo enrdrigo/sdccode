@@ -1,9 +1,4 @@
 import numpy as np
-import os
-import matplotlib.pyplot as plt
-import matplotlib.ticker as plticker
-from numba import njit, prange, objmode
-import time
 
 #-----------------------------------------------------------------------------------------------------------------------
 #COMPUTES THE POSITION OF THE OXY AND OF THE TWO HYDROGENS AT GIVEN SNAPSHOT. IT ALSO GETS THE POSITION OF THE THE FOURTH PARTICLE IN THE

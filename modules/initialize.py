@@ -1,9 +1,4 @@
 import numpy as np
-import os
-import matplotlib.pyplot as plt
-import matplotlib.ticker as plticker
-from numba import njit, prange, objmode
-import time
 
 #-----------------------------------------------------------------------------------------------------------------------
 #READS THE DATA FROM THE LAMMPS OUTPUT AND SAVE IT IN A BINARY FORM. IT CAN TAKE VERY LONG.
