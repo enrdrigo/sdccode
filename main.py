@@ -6,10 +6,11 @@ from modules import initialize
 from modules import dipole
 from modules.computestatdc import computestatdc
 
+
 #-----------------------------------------------------------------------------------------------------------------------
 #INITIALIZATION
-start=time.time()
 
+start=time.time()
 #I MUST INDICATE WHERE ARE THE DATA
 root=''
 filename='dump1.1fs.lammpstrj'
@@ -30,22 +31,21 @@ print('The data are stored in '+ root+filename + '\n and written in bynary form 
 print('The system has {}'.format(Npart)+' atoms in a box of side {:10.5f}'.format(Lato)+' Angstom')
 print('In the calculation we are using {}'.format(nsnapshot)+' snapshots')
 print('Initialization done in {:10.5f}'. format(time.time()-start)+'s')
-#-----------------------------------------------------------------------------------------------------------------------
 
 
 #-----------------------------------------------------------------------------------------------------------------------
 #CALCULATION OF THE DIPOLES
+
 start1=time.time()
 #COMPUTE THE MATRIX OF THE MOLECULAR DIPOLES, THE CENTER OF MASS OF THE MOLECULE, THE ATOMIC CHARGES AND
 #THE POSITION OF THE CHARGES (IN TIP4P/2005 THE OXY CHARGE IS IN A DIFFERENT POSITION THAN THE OXY ITSELF)
 dipmol,cdmol, chat, pos=dipole.staticdc(Npart, Lato,Lmin, nsnapshot, data_arrayy)
-
 print("Molecular dipoles, molecular positions, charges and charge positions for the trajectory computed in {:10.5f}".format(time.time()-start1)+'s')
-#-----------------------------------------------------------------------------------------------------------------------
 
 
 #-----------------------------------------------------------------------------------------------------------------------
 #CALCULATION OF THE STATIC DIELECTRIC CONSTANT
+
 start2=time.time()
 nk=20
 #COMPUTE THE STATIC DIELECTRIC CONSTANT FOR NK VALUES OF THE G VECTOR IN THE (1,0,0) DIRECTION: 2\PI/LATO*(J,0,0), J=1,..NK
@@ -62,4 +62,4 @@ for j in range(nk):
 print('The static dielectric constants are saved in '+root+file)
 print('Static dielectric constant for {}'.format(nk)+' values of k computed in {:10.5f}'.format(time.time()-start2)+'s')
 print('Total elapsed time: {:10.5f}'.format(time.time()-start)+'s')
-#-----------------------------------------------------------------------------------------------------------------------
+
