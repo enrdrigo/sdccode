@@ -26,7 +26,6 @@ Lato, Lmin=initialize.getBoxboundary(filename, root)
 #GETS THE NUMBER OF SNAPSHOT OF THE SIMULATION. RESHAPE THE ARRAY OF THE DATA SO THAT WE HAVE A MATRIX WITH THE
 # COORDINATES AND THE CHARGES FOR EACH SNAPSHOT
 data_arrayy, nsnapshot=initialize.getDatainshape_andNsnap(filebin, root, Npart)
-
 print('The data are stored in '+ root+filename + '\n and written in bynary form in '+root+filebin)
 print('The system has {}'.format(Npart)+' atoms in a box of side {:10.5f}'.format(Lato)+' Angstom')
 print('In the calculation we are using {}'.format(nsnapshot)+' snapshots')
