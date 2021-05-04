@@ -130,7 +130,7 @@ def computeat(GG, Np, L, Linf, nsnap, data_array, poschO, posH1, posH2):
 
 
 #-----------------------------------------------------------------------------------------------------------------------
-#INITIALIZES THE ARRAY NEEDED IN THE ROUTINE staticdc SO THAT IT IS MORE EASYLY READBLE.
+#INITIALIZES THE ARRAY NEEDED IN THE ROUTINE staticdc SO THAT IT IS MORE EASYLY READABLE.
 
 def initialize(nsnap, Np):
     nmol = int(Np / 3)
