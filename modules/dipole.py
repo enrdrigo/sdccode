@@ -1,8 +1,10 @@
 import numpy as np
 
+
 #-----------------------------------------------------------------------------------------------------------------------
 #COMPUTES THE POSITION OF THE OXY AND OF THE TWO HYDROGENS AT GIVEN SNAPSHOT. IT ALSO GETS THE POSITION OF THE THE FOURTH PARTICLE IN THE
 #TIP4P/2005 MODEL OF WATER WHERE THERE IS THE CHARGE OF THE OXY (SEE TIP4P/2005 MODEL OF WATER).
+
 def computeposmol(GG, Np, L, Linf, nsnap, data_array):
     nmol = int(Np / 3)
     datamol = np.zeros((8, nmol, 3))
@@ -34,11 +36,12 @@ def computeposmol(GG, Np, L, Linf, nsnap, data_array):
     #
 
     return poschO, posO, posH1, posH2
-#-----------------------------------------------------------------------------------------------------------------------
+
 
 #-----------------------------------------------------------------------------------------------------------------------
 #COMPUTES THE MOLECULAR DIPOLES AND THE CENTER OF MASS OF THE MOLECULES AT GIVEN SNAPSHOT. COMPITING THE MOLECULAR DIPOLE
 # WE MUST REMENBER THAT THE OXY CHARGE IS NOT LOCATED IN THE OXY POSITION (SEE TIP4P/2005 MODEL OF WATER).
+
 def computemol(GG, Np, L, Linf, nsnap, data_array, poschO, posO, posH1, posH2):
     nmol = int(Np / 3)
     datamol = np.zeros((8, nmol, 3))
@@ -77,11 +80,12 @@ def computemol(GG, Np, L, Linf, nsnap, data_array, poschO, posO, posH1, posH2):
     #
 
     return np.transpose(dip_mol0), np.transpose(cdmmol)
-#-----------------------------------------------------------------------------------------------------------------------
+
 
 #-----------------------------------------------------------------------------------------------------------------------
 #COMPUTES THE CHARGE AND ATOMIC POSITION ARRAYS OF THE ATOMS AT A GIVEN SNAPSHOT. THE OXY POSITION IS SHIFTED ACCORDING
 # TO THE TIP4P/2005 MODEL OF WATER.
+
 def computeat(GG, Np, L, Linf, nsnap, data_array, poschO, posH1, posH2):
     nmol = int(Np / 3)
 
@@ -123,10 +127,11 @@ def computeat(GG, Np, L, Linf, nsnap, data_array, poschO, posH1, posH2):
     #
 
     return ch_at, np.transpose(pos_at)
-#-----------------------------------------------------------------------------------------------------------------------
+
 
 #-----------------------------------------------------------------------------------------------------------------------
 #INITIALIZES THE ARRAY NEEDED IN THE ROUTINE staticdc SO THAT IT IS MORE EASYLY READBLE.
+
 def initialize(nsnap, Np):
     nmol = int(Np / 3)
     cdmol = np.zeros((nsnap, nmol, 3))
@@ -139,10 +144,11 @@ def initialize(nsnap, Np):
     posH1 = np.zeros((3, nmol))
     posH2 = np.zeros((3, nmol))
     return cdmol, pos_at, ch_at, dip_at, dip_mol, poschO, posO, posH1, posH2
-#-----------------------------------------------------------------------------------------------------------------------
+
 
 #-----------------------------------------------------------------------------------------------------------------------
 #CASTS THE MOLECULAR DIPOLES, MOLECULAR CENTERS OF MASS, ATOMIC CHARGES AND ATOMIC POSITIONS IN NP.ARRAYS.
+
 def staticdc(Np, L, Linf, nsnap, data_array):
     nmol = int(Np / 3)
     cdmol, pos_at, ch_at, dip_at, dip_mol, poschO, posO, posH1, posH2 = initialize(nsnap, Np)
@@ -155,4 +161,3 @@ def staticdc(Np, L, Linf, nsnap, data_array):
 
         ch_at[s], pos_at[s] = computeat(G, Np, L, Linf, nsnap, data_array[s].transpose(), poschO, posH1, posH2)
     return dip_mol, cdmol, ch_at, pos_at
-#-----------------------------------------------------------------------------------------------------------------------
