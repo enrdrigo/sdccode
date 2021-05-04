@@ -6,7 +6,6 @@ from modules import initialize
 from modules import dipole
 from modules.computestatdc import computestatdc
 
-
 #-----------------------------------------------------------------------------------------------------------------------
 #INITIALIZATION
 start=time.time()
