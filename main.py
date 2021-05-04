@@ -1,7 +1,5 @@
 import numpy as np
 import os
-import matplotlib.pyplot as plt
-import matplotlib.ticker as plticker
 #from numba import njit, prange, objmode
 import time
 from modules import initialize
