@@ -1,8 +1,8 @@
 import numpy as np
 
 
-#-----------------------------------------------------------------------------------------------------------------------
-#READS THE DATA FROM THE LAMMPS OUTPUT AND SAVE IT IN A BINARY FORM. IT CAN TAKE VERY LONG.
+# ----------------------------------------------------------------------------------------------------------------------
+# READS THE DATA FROM THE LAMMPS OUTPUT AND SAVE IT IN A BINARY FORM. IT CAN TAKE VERY LONG.
 
 def saveonbin(filename, root, Np):
     f = open(root + filename, 'r')
@@ -19,8 +19,8 @@ def saveonbin(filename, root, Np):
     return filesavebin
 
 
-#-----------------------------------------------------------------------------------------------------------------------
-#GETS FROM THE LAMMPS OUTPUT THE NUMBER OF ATOMS IN THE SIMULATION
+# ----------------------------------------------------------------------------------------------------------------------
+# GETS FROM THE LAMMPS OUTPUT THE NUMBER OF ATOMS IN THE SIMULATION
 
 def getNpart(filename, root):
     f = open(root + filename, 'r')
@@ -33,8 +33,8 @@ def getNpart(filename, root):
         oldline = line
 
 
-#-----------------------------------------------------------------------------------------------------------------------
-#GETS FROM THE LAMMPS OUTPUT THE DIMENTION OF THE SIDE OF THE SIMULATION BOX
+# ----------------------------------------------------------------------------------------------------------------------
+# GETS FROM THE LAMMPS OUTPUT THE DIMENTION OF THE SIDE OF THE SIMULATION BOX
 
 def getBoxboundary(filename, root):
     f = open(root + filename, 'r')
@@ -47,9 +47,9 @@ def getBoxboundary(filename, root):
         oldline = line
 
 
-#-----------------------------------------------------------------------------------------------------------------------
-#GETS THE NUMBER OF SNAPSHOT THAT WE ARE CONSIDERING AND PERFORMS A RESHAPE OF THE DATA ARRAY SO THAT WE HAVE FOR EACH
-#SNAPSHOT A MATRIX WITH THE POSITION AND THE CHARGES OF THE MOLECULES
+# ----------------------------------------------------------------------------------------------------------------------
+# GETS THE NUMBER OF SNAPSHOT THAT WE ARE CONSIDERING AND PERFORMS A RESHAPE OF THE DATA ARRAY SO THAT WE HAVE FOR EACH
+# SNAPSHOT A MATRIX WITH THE POSITION AND THE CHARGES OF THE MOLECULES
 
 def getDatainshape_andNsnap(filename, root, Np):
     dati = np.load(root + filename, allow_pickle=True)
