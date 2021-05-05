@@ -50,6 +50,10 @@ nk = 20
 # COMPUTES THE STATIC DIELECTRIC CONSTANT FOR NK VALUES OF THE G VECTOR IN THE (1,0,0) DIRECTION:
 # 2\PI/LATO*(J,0,0), J=1,..NK
 e0pol, e0ch = computestatdc(nk, dipmol, cdmol, chat, pos, Lato, nsnapshot)
+print('Static dielectric constant for {}'.format(nk)+' values of k computed in {:10.5f}'.format(time.time()-start2)+'s')
+
+
+# ----------------------------------------------------------------------------------------------------------------------
 # PRINT THE DIELECTRIC CONSTANT COMPUTED VIA THE POLARIZATION AND VIA THE CHARGES AS A FUNCTION OF G AND SAVE IN A FILE
 file = '{}'.format(Npart)+'{}'.format(nk)+'dielconst.dat'
 f = open(file, 'w+')
@@ -60,5 +64,4 @@ for j in range(nk):
     print('{}\t'.format(j)+'{:10.3f}\t'.format(e0pol[j][0])+'{:10.3f}\t'.format(e0pol[j][1])+'{:10.3f}\t'.format(e0pol[j][2])+'{:10.3f}'.format(e0ch[j]))
     f.write('{}\t'.format(j)+'{:10.3f}\t'.format(e0pol[j][0])+'{:10.3f}\t'.format(e0pol[j][1])+'{:10.3f}\t'.format(e0pol[j][2])+'{:10.3f}\n'.format(e0ch[j]))
 print('The static dielectric constants are saved in '+root+file)
-print('Static dielectric constant for {}'.format(nk)+' values of k computed in {:10.5f}'.format(time.time()-start2)+'s')
 print('Total elapsed time: {:10.5f}'.format(time.time()-start)+'s')
