@@ -1,7 +1,5 @@
 import numpy as np
 import os
-from numba import njit, prange, objmode
-import matplotlib.pyplot as plt
 import time
 from modules import initialize
 from modules import dipole
@@ -13,7 +11,7 @@ from modules import computestatdc
 
 start = time.time()
 # INDICATES WHERE ARE THE DATA
-root = '.'
+root = '/Users/enricodrigo/Documents/LAMMPS/125_mol/'
 filename = 'dump1.1fs.lammpstrj'
 # GETS THE NUMBER OF PARTICLES IN THE SIMULATION
 Npart = initialize.getNpart(filename, root)
@@ -72,15 +70,18 @@ print('The static dielectric constant for {}'.format(nk)+' values of k computed 
 # ----------------------------------------------------------------------------------------------------------------------
 # COMPUTES THE DIPOLES PAIR CORRELATION FUNCTION AT GMIN IN THE (G,0,0) DIRECTION AND SAVE IT IN A FILE
 
-nk = 10
-G = 0
+nk = 100
+G = 1
 start2 = time.time()
-file = '{}'.format(Npart)+'{}'.format(G)+'dippcf.dat'
+file = '{}'.format(Npart)+'{}'.format(G)+'dippcfwstd.dat'
 print('The dipole pair correlation function for G=({}, 0, 0)'.format(G)+' is saved in '+root+file)
-print('r\t'+'c_m_x\t'+'c_m_y\t'+'c_m_z\n')
-gk = computestatdc.dip_paircf(G, nk, dipmol, cdmol, Lato, nsnapshot)
+print('r\t'+'c_m_x\t'+'c_m_y\t'+'c_m_z\t'+'std_c_m_x\t'+'std_c_m_y\t'+'std_c_m_z\t')
+rdipmol, rcdmol, tdipmol, tcdmol = computestatdc.reshape(cdmol, dipmol)
+
+gk , stdgk= computestatdc.dip_paircf(G, nk, rdipmol, rcdmol, tdipmol, tcdmol, Lato, nsnapshot)
 f = open(file, 'w+')
 for i in range(nk):
-    f.write('{:10.5f}\t'.format((i*(Lato - 2)/2/nk +2)/0.529) + '{:10.5f}\t'.format(gk[i][0]) + '{:10.5f}\t'.format(gk[i][1]) + '{:10.5f}\n'.format(gk[i][2]))
+    f.write('{:10.5f}\t'.format((i*(Lato - 2)/2/nk + 2)/0.529) + '{:10.5f}\t'.format(gk[i][0]) + '{:10.5f}\t'.format(gk[i][1]) + '{:10.5f}\t'.format(gk[i][2])+\
+            '{:10.5f}\t'.format(stdgk[i][0]) + '{:10.5f}\t'.format(stdgk[i][1]) + '{:10.5f}\n'.format(stdgk[i][2]))
 print('The dipole pair correlation function for G=({}, 0, 0)'.format(G)+'  computed in : {:10.5f}'.format(time.time()-start2)+'s')
 print('Total elapsed time: {:10.5f}'.format(time.time()-start)+'s')
