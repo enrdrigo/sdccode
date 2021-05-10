@@ -65,6 +65,7 @@ for j in range(nk):
     f.write('{}\t'.format(j)+'{:10.3f}\t'.format(e0pol[j][0])+'{:10.3f}\t'.format(e0pol[j][1])+'{:10.3f}\t'.format(e0pol[j][2])+'{:10.3f}\n'.format(e0ch[j]))
 print('The static dielectric constants are saved in '+root+file)
 print('The static dielectric constant for {}'.format(nk)+' values of k computed in : {:10.5f}'.format(time.time()-start2)+'s')
+f.close()
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -85,3 +86,4 @@ for i in range(nk):
             '{:10.5f}\t'.format(stdgk[i][0]) + '{:10.5f}\t'.format(stdgk[i][1]) + '{:10.5f}\n'.format(stdgk[i][2]))
 print('The dipole pair correlation function for G=({}, 0, 0)'.format(G)+'  computed in : {:10.5f}'.format(time.time()-start2)+'s')
 print('Total elapsed time: {:10.5f}'.format(time.time()-start)+'s')
+f.close()
