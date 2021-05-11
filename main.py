@@ -79,7 +79,7 @@ print('The dipole pair correlation function for G=({}, 0, 0)'.format(G)+' is sav
 print('r\t'+'c_m_x\t'+'c_m_y\t'+'c_m_z\t'+'std_c_m_x\t'+'std_c_m_y\t'+'std_c_m_z\t')
 rdipmol, rcdmol, tdipmol, tcdmol = computestatdc.reshape(cdmol, dipmol)
 
-gk , stdgk= computestatdc.dip_paircf(G, nk, rdipmol, rcdmol, tdipmol, tcdmol, Lato, nsnapshot)
+gk, stdgk = computestatdc.dip_paircf(G, nk, rdipmol, rcdmol, tdipmol, tcdmol, Lato, nsnapshot)
 f = open(file, 'w+')
 for i in range(nk):
     f.write('{:10.5f}\t'.format((i*(Lato - 2)/2/nk + 2)/0.529) + '{:10.5f}\t'.format(gk[i][0]) + '{:10.5f}\t'.format(gk[i][1]) + '{:10.5f}\t'.format(gk[i][2])+\

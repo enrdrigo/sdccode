@@ -1,5 +1,5 @@
 import numpy as np
-from numba import njit
+from numba import njit, prange
 import time
 # prange, objmode
 
@@ -28,51 +28,58 @@ def computestatdc(nk, dipmol, cdmol, chat, pos, L, nsnap):
                 / ((j * 2 * np.pi / L + np.sqrt(3) * 2 * np.pi / L * 1e-8)**2) * 1.0e5 / (L**3 * 1.38 * 300 * 8.854)
     return e0pol, e0ch
 
+
+
+# ----------------------------------------------------------------------------------------------------------------------
 def reshape(cdmol, dipmol):
     nmol=np.shape(dipmol)[1]
     nsnap=np.shape(dipmol)[0]
     # DIPMOL, CDMOL HAVE DIMENTION (NSNAP, NMOL, 3)
-    rcdmol = np.transpose(cdmol, (1, 2, 0))
-    rdipmol = np.transpose(dipmol, (1, 2, 0))
-    tcdmol = np.zeros((3, nmol, nsnap))
-    tcdmol = np.transpose(rcdmol, (1, 0, 2))
-    tdipmol = np.zeros((3, nmol, nsnap))
-    tdipmol = np.transpose(rdipmol, (1, 0, 2))
-    rcdmol = np.reshape(rcdmol, (nmol, 3, 1, nsnap))
-    rdipmol = np.reshape(rdipmol, (nmol, 3, 1, nsnap))
+    rcdmol=np.zeros((3, nmol, nsnap))
+    rcdmol = np.transpose(cdmol, (2, 1, 0))
+    rdipmol = np.transpose(dipmol, (2, 1, 0))
+    tcdmol = np.transpose(cdmol, (1, 2, 0))
+    tdipmol = np.transpose(dipmol, (1, 2, 0))
     return rdipmol, rcdmol, tdipmol, tcdmol
 
 # ----------------------------------------------------------------------------------------------------------------------
+# COMPUTES THE DIPOLE PAIR CORRELATION FUNCTION AND ITS STD
+@njit(parallel=True)
 def dip_paircf(G, nk, rdipmol, rcdmol, tdipmol, tcdmol, L, nsnap):
-    nmol = np.shape(rdipmol)[0]
+    nmol = int(np.shape(rdipmol)[1])
+    print(nmol)
     distcdm = np.zeros((nmol, nsnap))
     diffcdm = np.zeros((3, nmol, nsnap))
     dipsq = np.zeros((3, nmol, nsnap), dtype=np.complex_)
     gk = np.zeros((nk, 3))
     stdgk = np.zeros((nk, 3))
     sigma = 0.08
-    cm = np.zeros((nmol, 3, nsnap), dtype=np.complex_)
-    # RCDMOL, RDIPMOL HAVE SIZE (NMOL, 3, 1, NSNAP), (NMOL, 3, 1, NSNAP)
+    cm = np.zeros((3, nmol, nsnap), dtype=np.complex_)
+    # RCDMOL, RDIPMOL HAVE SIZE (3, NMOL, NSNAP), (3, NMOL, NSNAP)
 
     for i in range(nk):
         r = i * (L - 2) / 2 / nk + 2
-        start = time.time()
+        #start = time.time()
+
         for s in range(nmol):
+            for c in range(3):
+                diffcdm[c, :, :] = rcdmol[c, s, :] - rcdmol[c, :, :]
 
-            diffcdm[:, :, :] = rcdmol[s, :, :, :]-tcdmol[:, :, :]
+                dipsq[c, :, :] = rdipmol[c, s, :]*rdipmol[c, :, :] * np.exp(1j * diffcdm[0, :, :] * (G * 2 * np.pi / L))
 
-            distcdm[:, :] = np.sqrt(np.sum(diffcdm[:, :, :]**2, axis=0))
+                dipsq[c, :, s] = 0
 
-            dipsq[:, :, :] = rdipmol[s, :, :, :]*tdipmol[:, :, :] * np.exp(1j * diffcdm[0, :, :] * (G * 2 * np.pi / L))
+            distcdm[:, :] = np.sqrt(np.sum(diffcdm*diffcdm, axis=0))
+            for c in range(3):
+                cm[c, s, :] = np.sum(dipsq[c, :, :]*np.exp(-(r-distcdm[:, :])**2/sigma**2), axis=0)
 
-            dipsq[:, s, :] = 0
-
-            cm[s, :, :] = np.sum(dipsq[:, :, :]*np.exp(-(r-distcdm[:, :])**2/sigma**2), axis=1)
-
-        gk[i] = np.real(np.sum(np.sum(cm, axis=0)/nmol, axis=1)/nsnap/r**2/2*np.pi/sigma**2)
-        stdgk[i] = np.sqrt(np.real(np.var(np.sum(cm, axis=0)/nmol, axis=1)/nsnap)/r**2/2*np.pi/sigma**2)
-        print('{:10.5f}\t'.format((i*(L - 2)/2/nk + 2)/0.529) + '{:10.5f}\t'.format(gk[i][0]) + '{:10.5f}\t'.format(gk[i][1]) + '{:10.5f}\t'.format(gk[i][2])+\
-            '{:10.5f}\t'.format(stdgk[i][0]) + '{:10.5f}\t'.format(stdgk[i][1]) + '{:10.5f}\t'.format(stdgk[i][2]), time.time() - start)
+        gk[i] = np.real(np.sum(np.sum(cm, axis=1)/nmol, axis=1) / nsnap / r ** 2 / 2 * np.pi / sigma ** 2)
+        stdgk[i][0] = np.sqrt(np.real(np.var(np.sum(cm, axis=1) / nmol, ) / nsnap)) / r ** 2 / 2 * np.pi / sigma ** 2
+        stdgk[i][1] = np.sqrt(np.real(np.var(np.sum(cm, axis=1) / nmol, ) / nsnap)) / r ** 2 / 2 * np.pi / sigma ** 2
+        stdgk[i][2] = np.sqrt(np.real(np.var(np.sum(cm, axis=1) / nmol, ) / nsnap)) / r ** 2 / 2 * np.pi / sigma ** 2
+        #print('{:10.5f}\t'.format((i*(L - 2)/2/nk + 2)/0.529) + '{:10.5f}\t'.format(gk[i][0]) + '{:10.5f}\t'.format(gk[i][1]) + '{:10.5f}\t'.format(gk[i][2])+\
+        #    '{:10.5f}\t'.format(stdgk[i][0]) + '{:10.5f}\t'.format(stdgk[i][1]) + '{:10.5f}\t'.format(stdgk[i][2]), time.time() - start)
+        print((i*(L - 2)/2/nk + 2)/0.529, gk[i][0], gk[i][1], gk[i][2], stdgk[i][0], stdgk[i][1], stdgk[i][2])
 
     return gk, stdgk
 
