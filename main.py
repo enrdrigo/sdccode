@@ -11,7 +11,7 @@ from modules import computestatdc
 
 start = time.time()
 # INDICATES WHERE ARE THE DATA
-root = '/Users/enricodrigo/Documents/LAMMPS/1500_mol/'
+root = '/Users/enricodrigo/Documents/LAMMPS/125_mol/'
 filename = 'dump1.1fs.lammpstrj'
 # GETS THE NUMBER OF PARTICLES IN THE SIMULATION
 Npart = initialize.getNpart(filename, root)
@@ -79,6 +79,8 @@ print('r\t'+'c_m_x\t'+'c_m_y\t'+'c_m_z\t'+'std_c_m_x\t'+'std_c_m_y\t'+'std_c_m_z
 rdipmol, rcdmol, tdipmol, tcdmol = computestatdc.reshape(cdmol, dipmol)
 nk = 1
 gk, stdgk = computestatdc.dip_paircf(G, nk, rdipmol, rcdmol, tdipmol, tcdmol, Lato, nsnapshot)
+print(time.time()-start2)
+start2=time.time()
 nk = 100
 gk, stdgk = computestatdc.dip_paircf(G, nk, rdipmol, rcdmol, tdipmol, tcdmol, Lato, nsnapshot)
 f = open(file, 'w+')
