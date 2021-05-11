@@ -11,7 +11,7 @@ from modules import computestatdc
 
 start = time.time()
 # INDICATES WHERE ARE THE DATA
-root = '/Users/enricodrigo/Documents/LAMMPS/125_mol/'
+root = '/Users/enricodrigo/Documents/LAMMPS/1500_mol/'
 filename = 'dump1.1fs.lammpstrj'
 # GETS THE NUMBER OF PARTICLES IN THE SIMULATION
 Npart = initialize.getNpart(filename, root)

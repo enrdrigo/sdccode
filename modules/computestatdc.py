@@ -38,41 +38,41 @@ def reshape(cdmol, dipmol):
     tcdmol = np.transpose(rcdmol, (1, 0, 2))
     tdipmol = np.zeros((3, nmol, nsnap))
     tdipmol = np.transpose(rdipmol, (1, 0, 2))
-    rcdmol = np.reshape(rcdmol, (nmol, 1, 3, 1, nsnap))
+    rcdmol = np.reshape(rcdmol, (nmol, 3, 1, nsnap))
     rdipmol = np.reshape(rdipmol, (nmol, 3, 1, nsnap))
     return rdipmol, rcdmol, tdipmol, tcdmol
 
 # ----------------------------------------------------------------------------------------------------------------------
 def dip_paircf(G, nk, rdipmol, rcdmol, tdipmol, tcdmol, L, nsnap):
     nmol = np.shape(rdipmol)[0]
-    distcdm = np.zeros((nmol, 1, nmol, nsnap))
-    diffcdm = np.zeros((nmol, 1, 3, nmol, nsnap))
-    dipsq = np.zeros((nmol, 3, nmol, nsnap), dtype=np.complex_)
+    distcdm = np.zeros((nmol, nsnap))
+    diffcdm = np.zeros((3, nmol, nsnap))
+    dipsq = np.zeros((3, nmol, nsnap), dtype=np.complex_)
     gk = np.zeros((nk, 3))
     stdgk = np.zeros((nk, 3))
     sigma = 0.08
-    cm = np.zeros((nmol, 3, nmol, nsnap), dtype=np.complex_)
-    # RCDMOL, RDIPMOL HAVE SIZE (NMOL, 1, 3, 1, NSNAP), (NMOL, 3, 1, NSNAP)
+    cm = np.zeros((nmol, 3, nsnap), dtype=np.complex_)
+    # RCDMOL, RDIPMOL HAVE SIZE (NMOL, 3, 1, NSNAP), (NMOL, 3, 1, NSNAP)
 
     for i in range(nk):
         r = i * (L - 2) / 2 / nk + 2
-        start=time.time()
+        start = time.time()
         for s in range(nmol):
 
-            diffcdm[s, :, :, :, :] = rcdmol[s, :, :, :, :]-tcdmol[:, :, :]
+            diffcdm[:, :, :] = rcdmol[s, :, :, :]-tcdmol[:, :, :]
 
-            distcdm[s, :, :, :] = np.sqrt(np.sum(diffcdm[s, :, :, :, :]**2, axis=1))
+            distcdm[:, :] = np.sqrt(np.sum(diffcdm[:, :, :]**2, axis=0))
 
-            dipsq[s, :, :, :] = rdipmol[s, :, :, :]*tdipmol[:, :, :] * np.exp(1j * diffcdm[s, :, 0, :, :] * (G * 2 * np.pi / L))
+            dipsq[:, :, :] = rdipmol[s, :, :, :]*tdipmol[:, :, :] * np.exp(1j * diffcdm[0, :, :] * (G * 2 * np.pi / L))
 
-            dipsq[s, :, s, :] = 0
+            dipsq[:, s, :] = 0
 
-            cm[s, :, :, :] = dipsq[s, :, :, :]*np.exp(-(r-distcdm[s, :, :, :])**2/sigma**2)
+            cm[s, :, :] = np.sum(dipsq[:, :, :]*np.exp(-(r-distcdm[:, :])**2/sigma**2), axis=1)
 
-        gk[i] = np.real(np.sum(np.sum(np.sum(cm, axis=0), axis=1)/nmol, axis=1)/nsnap/r**2/2*np.pi/sigma**2)
-        stdgk[i] = np.sqrt(np.real(np.var(np.sum(np.sum(cm, axis=0), axis=1)/nmol, axis=1)/nsnap)/r**2/2*np.pi/sigma**2)
+        gk[i] = np.real(np.sum(np.sum(cm, axis=0)/nmol, axis=1)/nsnap/r**2/2*np.pi/sigma**2)
+        stdgk[i] = np.sqrt(np.real(np.var(np.sum(cm, axis=0)/nmol, axis=1)/nsnap)/r**2/2*np.pi/sigma**2)
         print('{:10.5f}\t'.format((i*(L - 2)/2/nk + 2)/0.529) + '{:10.5f}\t'.format(gk[i][0]) + '{:10.5f}\t'.format(gk[i][1]) + '{:10.5f}\t'.format(gk[i][2])+\
-            '{:10.5f}\t'.format(stdgk[i][0]) + '{:10.5f}\t'.format(stdgk[i][1]) + '{:10.5f}\t'.format(stdgk[i][2]), time.time()-start)
+            '{:10.5f}\t'.format(stdgk[i][0]) + '{:10.5f}\t'.format(stdgk[i][1]) + '{:10.5f}\t'.format(stdgk[i][2]), time.time() - start)
 
     return gk, stdgk
 
