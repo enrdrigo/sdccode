@@ -71,14 +71,15 @@ f.close()
 # ----------------------------------------------------------------------------------------------------------------------
 # COMPUTES THE DIPOLES PAIR CORRELATION FUNCTION AT GMIN IN THE (G,0,0) DIRECTION AND SAVE IT IN A FILE
 
-nk = 100
 G = 1
 start2 = time.time()
 file = '{}'.format(Npart)+'{}'.format(G)+'dippcfwstd.dat'
 print('The dipole pair correlation function for G=({}, 0, 0)'.format(G)+' is saved in '+root+file)
 print('r\t'+'c_m_x\t'+'c_m_y\t'+'c_m_z\t'+'std_c_m_x\t'+'std_c_m_y\t'+'std_c_m_z\t')
 rdipmol, rcdmol, tdipmol, tcdmol = computestatdc.reshape(cdmol, dipmol)
-
+nk = 1
+gk, stdgk = computestatdc.dip_paircf(G, nk, rdipmol, rcdmol, tdipmol, tcdmol, Lato, nsnapshot)
+nk = 100
 gk, stdgk = computestatdc.dip_paircf(G, nk, rdipmol, rcdmol, tdipmol, tcdmol, Lato, nsnapshot)
 f = open(file, 'w+')
 for i in range(nk):
