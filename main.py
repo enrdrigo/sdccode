@@ -11,8 +11,8 @@ from modules import computestatdc
 
 start = time.time()
 # INDICATES WHERE ARE THE DATA
-root = '/Users/enricodrigo/Documents/LAMMPS/125_mol/'
-filename = 'dump1.1fs.lammpstrj'
+root = '/Users/enricodrigo/Documents/LAMMPS/125_mol/spce/'
+filename = 'dump1.05fs.lammpstrj'
 # GETS THE NUMBER OF PARTICLES IN THE SIMULATION
 Npart = initialize.getNpart(filename, root)
 # IF NOT ALREADY DONE SAVE THE DATA IN A BINARY FORMAT SO THAT IN THE FUTURE READS JUST THE BINARY
@@ -45,7 +45,7 @@ print("Molecular dipoles, molecular positions, charges and charge positions for 
 # CALCULATION OF THE STATIC DIELECTRIC CONSTANT
 
 start2 = time.time()
-nk = 20
+nk = 120
 # COMPUTES THE STATIC DIELECTRIC CONSTANT FOR NK VALUES OF THE G VECTOR IN THE (1,0,0) DIRECTION:
 # 2\PI/LATO*(J,0,0), J=1,..NK
 e0pol, e0ch = computestatdc.computestatdc(nk, dipmol, cdmol, chat, pos, Lato, nsnapshot)
@@ -70,23 +70,25 @@ f.close()
 
 # ----------------------------------------------------------------------------------------------------------------------
 # COMPUTES THE DIPOLES PAIR CORRELATION FUNCTION AT GMIN IN THE (G,0,0) DIRECTION AND SAVE IT IN A FILE
-
-G = 1
-start2 = time.time()
-file = '{}'.format(Npart)+'{}'.format(G)+'dippcfwstd.dat'
-print('The dipole pair correlation function for G=({}, 0, 0)'.format(G)+' is saved in '+root+file)
-print('r\t'+'c_m_x\t'+'c_m_y\t'+'c_m_z\t'+'std_c_m_x\t'+'std_c_m_y\t'+'std_c_m_z\t')
-rdipmol, rcdmol, tdipmol, tcdmol = computestatdc.reshape(cdmol, dipmol)
-nk = 1
-gk, stdgk = computestatdc.dip_paircf(G, nk, rdipmol, rcdmol, tdipmol, tcdmol, Lato, nsnapshot)
-print(time.time()-start2)
-start2=time.time()
-nk = 100
-gk, stdgk = computestatdc.dip_paircf(G, nk, rdipmol, rcdmol, tdipmol, tcdmol, Lato, nsnapshot)
-f = open(file, 'w+')
-for i in range(nk):
-    f.write('{:10.5f}\t'.format((i*(Lato - 2)/2/nk + 2)/0.529) + '{:10.5f}\t'.format(gk[i][0]) + '{:10.5f}\t'.format(gk[i][1]) + '{:10.5f}\t'.format(gk[i][2])+\
-            '{:10.5f}\t'.format(stdgk[i][0]) + '{:10.5f}\t'.format(stdgk[i][1]) + '{:10.5f}\n'.format(stdgk[i][2]))
-print('The dipole pair correlation function for G=({}, 0, 0)'.format(G)+'  computed in : {:10.5f}'.format(time.time()-start2)+'s')
-print('Total elapsed time: {:10.5f}'.format(time.time()-start)+'s')
-f.close()
+c = False
+if c:
+    G = 0
+    start2 = time.time()
+    file = '{}'.format(Npart)+'{}'.format(G)+'dippcfwstd.dat'
+    print('The dipole pair correlation function for G=({}, 0, 0)'.format(G)+' is saved in '+root+file)
+    rdipmol, rcdmol, tdipmol, tcdmol = computestatdc.reshape(cdmol, dipmol)
+    nk = 1
+    print('r\t'+'c_m_x\t'+'c_m_y\t'+'c_m_z\t'+'std_c_m_x\t'+'std_c_m_y\t'+'std_c_m_z\t')
+    gk, stdgk = computestatdc.dip_paircf(G, nk, rdipmol, rcdmol, tdipmol, tcdmol, Lato, nsnapshot)
+    print(time.time()-start2)
+    start2=time.time()
+    nk = 100
+    print('r\t'+'c_m_x\t'+'c_m_y\t'+'c_m_z\t'+'std_c_m_x\t'+'std_c_m_y\t'+'std_c_m_z\t')
+    gk, stdgk = computestatdc.dip_paircf(G, nk, rdipmol, rcdmol, tdipmol, tcdmol, Lato, nsnapshot)
+    f = open(file, 'w+')
+    for i in range(nk):
+        f.write('{:10.5f}\t'.format((i*(Lato - 2)/2/nk + 2)/0.529) + '{:10.5f}\t'.format(gk[i][0]) + '{:10.5f}\t'.format(gk[i][1]) + '{:10.5f}\t'.format(gk[i][2])+\
+                '{:10.5f}\t'.format(stdgk[i][0]) + '{:10.5f}\t'.format(stdgk[i][1]) + '{:10.5f}\n'.format(stdgk[i][2]))
+    print('The dipole pair correlation function for G=({}, 0, 0)'.format(G)+'  computed in : {:10.5f}'.format(time.time()-start2)+'s')
+    print('Total elapsed time: {:10.5f}'.format(time.time()-start)+'s')
+    f.close()
