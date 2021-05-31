@@ -37,7 +37,9 @@ print('Initialization done in {:10.5f}'. format(time.time()-start)+'s')
 start1 = time.time()
 # COMPUTES THE MATRIX OF THE MOLECULAR DIPOLES, THE CENTER OF MASS OF THE MOLECULE, THE ATOMIC CHARGES AND
 # THE POSITION OF THE CHARGES (IN TIP4P/2005 THE OXY CHARGE IS IN A DIFFERENT POSITION THAN THE OXY ITSELF)
-dipmol, cdmol, chat, pos = dipole.staticdc(Npart, Lato, Lmin, nsnapshot, data_arrayy)
+# POSO SETS THE DISTANCE BETWEEN THE OXY ATOM AND THE OXY CHARGE, IN THE TIP4P MODEL THE POSITIONS ARE DIFFERENT
+poso=0
+dipmol, cdmol, chat, pos = dipole.staticdc(Npart, Lato, Lmin, nsnapshot, data_arrayy, poso)
 print("Molecular dipoles, molecular positions, charges and charge positions for the trajectory computed in {:10.5f}".format(time.time()-start1)+'s')
 
 

@@ -5,7 +5,7 @@ import numpy as np
 # COMPUTES THE POSITION OF THE OXY AND OF THE TWO HYDROGENS AT GIVEN SNAPSHOT. IT ALSO GETS THE POSITION OF THE
 # FOURTH PARTICLE IN THE TIP4P/2005 MODEL OF WATER WHERE THERE IS THE CHARGE OF THE OXY (SEE TIP4P/2005 MODEL OF WATER).
 
-def computeposmol(GG, Np, L, Linf, nsnap, data_array):
+def computeposmol(GG, Np, L, Linf, nsnap, data_array, poso):
     nmol = int(Np / 3)
     datamol = np.zeros((8, nmol, 3))
     datamol = data_array.reshape((8, nmol, 3))
@@ -32,7 +32,7 @@ def computeposmol(GG, Np, L, Linf, nsnap, data_array):
 
     #
     poschO = np.zeros((3, nmol))
-    poschO = posO - 0.1250 * bisdir / np.sqrt(bisdir[0] ** 2 + bisdir[1] ** 2 + bisdir[2] ** 2)
+    poschO = posO - poso * bisdir / np.sqrt(bisdir[0] ** 2 + bisdir[1] ** 2 + bisdir[2] ** 2)
     #
 
     return poschO, posO, posH1, posH2
@@ -150,13 +150,13 @@ def initialize(nsnap, Np):
 # ----------------------------------------------------------------------------------------------------------------------
 # CASTS THE MOLECULAR DIPOLES, MOLECULAR CENTERS OF MASS, ATOMIC CHARGES AND ATOMIC POSITIONS IN NP.ARRAYS.
 
-def staticdc(Np, L, Linf, nsnap, data_array):
+def staticdc(Np, L, Linf, nsnap, data_array, poso):
     nmol = int(Np / 3)
     cdmol, pos_at, ch_at, dip_at, dip_mol, poschO, posO, posH1, posH2 = initialize(nsnap, Np)
     G = np.zeros(3)
     G = 2 * np.pi * np.array((1e-8, 1e-8, 1e-8)) / L
     for s in range(nsnap):
-        poschO, posO, posH1, posH2 = computeposmol(G, Np, L, Linf, nsnap, data_array[s].transpose())
+        poschO, posO, posH1, posH2 = computeposmol(G, Np, L, Linf, nsnap, data_array[s].transpose(), poso)
 
         dip_mol[s], cdmol[s] = computemol(G, Np, L, Linf, nsnap, data_array[s].transpose(), poschO, posO, posH1, posH2)
 

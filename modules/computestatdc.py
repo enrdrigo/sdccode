@@ -29,8 +29,8 @@ def computestatdc(nk, dipmol, cdmol, chat, pos, L, nsnap):
     return e0pol, e0ch
 
 
-
 # ----------------------------------------------------------------------------------------------------------------------
+
 def reshape(cdmol, dipmol):
     nmol=np.shape(dipmol)[1]
     nsnap=np.shape(dipmol)[0]
@@ -38,16 +38,17 @@ def reshape(cdmol, dipmol):
     rcdmol=np.zeros((3, nmol, nsnap))
     rcdmol = np.transpose(cdmol, (2, 1, 0))
     rdipmol = np.transpose(dipmol, (2, 1, 0))
-    tcdmol = np.transpose(cdmol, (1, 2, 0))
-    tdipmol = np.transpose(dipmol, (1, 2, 0))
+    tcdmol = np.transpose(cdmol, (2, 1, 0))
+    tdipmol = np.transpose(dipmol, (2, 1, 0))
     return rdipmol, rcdmol, tdipmol, tcdmol
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 # COMPUTES THE DIPOLE PAIR CORRELATION FUNCTION AND ITS STD
-@njit(parallel=True)
+
+@njit(parallel=True, fastmath=True)
 def dip_paircf(G, nk, rdipmol, rcdmol, tdipmol, tcdmol, L, nsnap):
     nmol = int(np.shape(rdipmol)[1])
-    print(nmol)
     distcdm = np.zeros((nmol, nsnap))
     diffcdm = np.zeros((3, nmol, nsnap))
     dipsq = np.zeros((3, nmol, nsnap), dtype=np.complex_)
@@ -63,9 +64,9 @@ def dip_paircf(G, nk, rdipmol, rcdmol, tdipmol, tcdmol, L, nsnap):
 
         for s in range(nmol):
             for c in range(3):
-                diffcdm[c, :, :] = rcdmol[c, s, :] - rcdmol[c, :, :]
+                diffcdm[c, :, :] = rcdmol[c, s, :] - tcdmol[c, :, :]
 
-                dipsq[c, :, :] = rdipmol[c, s, :]*rdipmol[c, :, :] * np.exp(1j * diffcdm[0, :, :] * (G * 2 * np.pi / L))
+                dipsq[c, :, :] = rdipmol[c, s, :]*tdipmol[c, :, :] * np.exp(1j * diffcdm[0, :, :] * (G * 2 * np.pi / L))
 
                 dipsq[c, :, s] = 0
 
@@ -77,8 +78,7 @@ def dip_paircf(G, nk, rdipmol, rcdmol, tdipmol, tcdmol, L, nsnap):
         stdgk[i][0] = np.sqrt(np.real(np.var(np.sum(cm, axis=1) / nmol, ) / nsnap)) / r ** 2 / 2 * np.pi / sigma ** 2
         stdgk[i][1] = np.sqrt(np.real(np.var(np.sum(cm, axis=1) / nmol, ) / nsnap)) / r ** 2 / 2 * np.pi / sigma ** 2
         stdgk[i][2] = np.sqrt(np.real(np.var(np.sum(cm, axis=1) / nmol, ) / nsnap)) / r ** 2 / 2 * np.pi / sigma ** 2
-        #print('{:10.5f}\t'.format((i*(L - 2)/2/nk + 2)/0.529) + '{:10.5f}\t'.format(gk[i][0]) + '{:10.5f}\t'.format(gk[i][1]) + '{:10.5f}\t'.format(gk[i][2])+\
-        #    '{:10.5f}\t'.format(stdgk[i][0]) + '{:10.5f}\t'.format(stdgk[i][1]) + '{:10.5f}\t'.format(stdgk[i][2]), time.time() - start)
+
         print((i*(L - 2)/2/nk + 2)/0.529, gk[i][0], gk[i][1], gk[i][2], stdgk[i][0], stdgk[i][1], stdgk[i][2])
 
     return gk, stdgk
