@@ -1,7 +1,6 @@
 import numpy as np
 from numba import njit, prange
 import time
-# prange, objmode
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -11,8 +10,8 @@ import time
 
 @njit(fastmath=True, parallel=True)
 def computestatdc(nk, dipmol, cdmol, chat, pos, L, nsnap):
-    e0pol=np.zeros((nk,3))
-    e0ch=np.zeros(nk)
+    e0pol = np.zeros((nk, 3))
+    e0ch = np.zeros(nk)
     for j in range(nk):
         e0pol[j][0] = 1 + (16.022**2) * np.sum(np.abs(np.sum(np.transpose(dipmol)[0] *\
                     np.exp(1j * (np.transpose(cdmol)[0] * (j * 2 * np.pi / L))), axis=0))**2)/nsnap\
@@ -27,6 +26,17 @@ def computestatdc(nk, dipmol, cdmol, chat, pos, L, nsnap):
                 np.exp(1j * (np.transpose(pos)[0] * (j * 2 * np.pi / L))), axis=0))**2)\
                 / ((j * 2 * np.pi / L + np.sqrt(3) * 2 * np.pi / L * 1e-8)**2) * 1.0e5 / (L**3 * 1.38 * 300 * 8.854)
     return e0pol, e0ch
+
+@njit(fastmath=True, parallel=True)
+def thermopolcoeff(nk, chat, enat, em, pos, posatomic, L, nsnap):
+    tpc = np.zeros(nk, dtype=np.complex_)
+    for j in range(nk):
+        tpc[j] = np.mean(np.sum(np.transpose(chat)*np.exp(1j * (np.transpose(pos)[0] * (j * 2 * np.pi / L))), axis=0) *\
+                (np.sum(np.transpose(enat)*np.exp(-1j * (np.transpose(posatomic)[0] * (j * 2 * np.pi / L))), axis=0)-em))\
+                 / ((j * 2 * np.pi / L + np.sqrt(3) * 2 * np.pi / L * 1e-8)**2) * \
+                 16.022 * 1.0e-30 * 4184 / 6.02214e23 * 1.0e-10 / ((L) ** 3 * 1.0e-30 * 1.38e-23 * 300 * 300 * 62.5 * 8.854 * 1.0e-12)
+
+    return tpc
 
 
 # ----------------------------------------------------------------------------------------------------------------------

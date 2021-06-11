@@ -5,7 +5,7 @@ import numpy as np
 # COMPUTES THE POSITION OF THE OXY AND OF THE TWO HYDROGENS AT GIVEN SNAPSHOT. IT ALSO GETS THE POSITION OF THE
 # FOURTH PARTICLE IN THE TIP4P/2005 MODEL OF WATER WHERE THERE IS THE CHARGE OF THE OXY (SEE TIP4P/2005 MODEL OF WATER).
 
-def computeposmol(GG, Np, L, Linf, nsnap, data_array, poso):
+def computeposmol(GG, Np, L, Linf, nsnap, data_array, posox):
     nmol = int(Np / 3)
     datamol = np.zeros((8, nmol, 3))
     datamol = data_array.reshape((8, nmol, 3))
@@ -32,7 +32,7 @@ def computeposmol(GG, Np, L, Linf, nsnap, data_array, poso):
 
     #
     poschO = np.zeros((3, nmol))
-    poschO = posO - poso * bisdir / np.sqrt(bisdir[0] ** 2 + bisdir[1] ** 2 + bisdir[2] ** 2)
+    poschO = posO - posox * bisdir / np.sqrt(bisdir[0] ** 2 + bisdir[1] ** 2 + bisdir[2] ** 2)
     #
 
     return poschO, posO, posH1, posH2
@@ -130,6 +130,35 @@ def computeat(GG, Np, L, Linf, nsnap, data_array, poschO, posH1, posH2):
     return ch_at, np.transpose(pos_at)
 
 
+def computeaten(GG, Np, L, Linf, nsnap, data_array):
+    #
+    Gat = np.ones((3, Np))
+
+    Gat[0] = GG[0] * np.ones(Np)
+    Gat[1] = GG[1] * np.ones(Np)
+    Gat[2] = GG[2] * np.ones(Np)
+    #
+
+    #
+    enat = np.zeros(Np)
+    enat = data_array[6] + data_array[7]
+    #
+
+    #
+    pos_at = np.zeros((3, Np))
+    pos_at[0] = data_array[2]
+    pos_at[1] = data_array[3]
+    pos_at[2] = data_array[4]
+    #
+
+    #
+    en_at = np.zeros(Np, dtype=np.complex_)
+    en_at = enat * np.exp(-1j * np.sum(pos_at * Gat, axis=0))
+    #
+
+    return en_at, np.transpose(pos_at), np.sum(enat)
+
+
 # ----------------------------------------------------------------------------------------------------------------------
 # INITIALIZES THE ARRAY NEEDED IN THE ROUTINE staticdc SO THAT IT IS MORE EASILY READABLE.
 
@@ -144,21 +173,27 @@ def initialize(nsnap, Np):
     posO = np.zeros((3, nmol))
     posH1 = np.zeros((3, nmol))
     posH2 = np.zeros((3, nmol))
-    return cdmol, pos_at, ch_at, dip_at, dip_mol, poschO, posO, posH1, posH2
+    posatomic= np.zeros((nsnap, Np, 3))
+    em = np.zeros(nsnap)
+    en_at = np.zeros((nsnap, Np), dtype=np.complex_)
+    return cdmol, pos_at, ch_at, dip_at, dip_mol, en_at, em, poschO, posO, posH1, posH2, posatomic
 
 
 # ----------------------------------------------------------------------------------------------------------------------
 # CASTS THE MOLECULAR DIPOLES, MOLECULAR CENTERS OF MASS, ATOMIC CHARGES AND ATOMIC POSITIONS IN NP.ARRAYS.
 
-def staticdc(Np, L, Linf, nsnap, data_array, poso):
+def computedipole(Np, L, Linf, nsnap, data_array, posox):
     nmol = int(Np / 3)
-    cdmol, pos_at, ch_at, dip_at, dip_mol, poschO, posO, posH1, posH2 = initialize(nsnap, Np)
+    cdmol, pos_at, ch_at, dip_at, dip_mol, en_at, em, poschO, posO, posH1, posH2, posatomic = initialize(nsnap, Np)
     G = np.zeros(3)
     G = 2 * np.pi * np.array((1e-8, 1e-8, 1e-8)) / L
     for s in range(nsnap):
-        poschO, posO, posH1, posH2 = computeposmol(G, Np, L, Linf, nsnap, data_array[s].transpose(), poso)
+        poschO, posO, posH1, posH2 = computeposmol(G, Np, L, Linf, nsnap, data_array[s].transpose(), posox)
 
         dip_mol[s], cdmol[s] = computemol(G, Np, L, Linf, nsnap, data_array[s].transpose(), poschO, posO, posH1, posH2)
 
         ch_at[s], pos_at[s] = computeat(G, Np, L, Linf, nsnap, data_array[s].transpose(), poschO, posH1, posH2)
-    return dip_mol, cdmol, ch_at, pos_at
+
+        en_at[s], posatomic[s], em[s] = computeaten(G, Np, L, Linf, nsnap, data_array[s].transpose())
+    return dip_mol, cdmol, ch_at, pos_at, en_at, em, posatomic
+
