@@ -4,14 +4,14 @@ import time
 from modules import initialize
 from modules import dipole
 from modules import computestatdc
-
+from modules import correlationfunction
 
 # ----------------------------------------------------------------------------------------------------------------------
 # INITIALIZATION
 
 start = time.time()
 # INDICATES WHERE ARE THE DATA
-root = '/Users/enricodrigo/Documents/LAMMPS/125_mol/04700/'
+root = '../'
 filename = 'dump1.05fs.lammpstrj'
 # GETS THE NUMBER OF PARTICLES IN THE SIMULATION
 Npart = initialize.getNpart(filename, root)
@@ -38,7 +38,7 @@ start1 = time.time()
 # COMPUTES THE MATRIX OF THE MOLECULAR DIPOLES, THE CENTER OF MASS OF THE MOLECULE, THE ATOMIC CHARGES AND
 # THE POSITION OF THE CHARGES (IN TIP4P/2005 THE OXY CHARGE IS IN A DIFFERENT POSITION THAN THE OXY ITSELF)
 # POSO SETS THE DISTANCE BETWEEN THE OXY ATOM AND THE OXY CHARGE, IN THE TIP4P MODEL THE POSITIONS ARE DIFFERENT
-posox=0.1250
+posox = float(input('Set the OM distance for the calculation of the dipoles.>\n'))
 dipmol, cdmol, chat, pos, enat, em, posatomic = dipole.computedipole(Npart, Lato, Lmin, nsnapshot, data_arrayy, posox)
 
 print("Molecular dipoles, molecular positions, charges and charge positions for the trajectory computed in {:10.5f}".format(time.time()-start1)+'s')
@@ -60,7 +60,6 @@ print('Static dielectric constant for {}'.format(nk)+' values of k computed in {
 # CALCULATION OF THE THERMOPOLARIZATION COEFFICIENT
 
 start2 = time.time()
-nk = 120
 # COMPUTES THE THERMOPOLARIZATION COEFFICIENT FOR NK VALUES OF THE G VECTOR IN THE (1,0,0) DIRECTION:
 # 2\PI/LATO*(J,0,0), J=1,..NK
 tpc = computestatdc.thermopolcoeff(nk, chat, enat,em, pos, posatomic, Lato, nsnapshot)
@@ -85,7 +84,8 @@ f.close()
 
 # ----------------------------------------------------------------------------------------------------------------------
 # COMPUTES THE DIPOLES PAIR CORRELATION FUNCTION AT GMIN IN THE (G,0,0) DIRECTION AND SAVE IT IN A FILE
-c = False
+c = bool(int(input("Do you want to compute the dipole pair correlation function:True(1)/False(0)>\n")))
+
 if c:
     G = 0
     start2 = time.time()
@@ -107,3 +107,10 @@ if c:
     print('The dipole pair correlation function for G=({}, 0, 0)'.format(G)+'  computed in : {:10.5f}'.format(time.time()-start2)+'s')
     print('Total elapsed time: {:10.5f}'.format(time.time()-start)+'s')
     f.close()
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# COMPUTES THE DENSITY-DENSITY CORRELATION FUNCTION AS A FUNCTION OF K AND \OMEGA AND PRINTS IT IN A FILE
+
+nk = int(input('How many k points do you want in the density-density correlation function>'))
+correlationfunction.correlation(nk, nsnapshot, Lato, dipmol, cdmol, chat, pos, enat, em, posatomic)
