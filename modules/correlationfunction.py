@@ -31,4 +31,4 @@ def correlation(nk, nsnap, L, dip_mol, cdmol, ch_at, pos_ch, en_at, em, pos_at):
     plt.ylabel(r'k in units of $\frac{2\pi}{L}$')
     plt.xlabel(r'$\omega$ in units of $\frac{2\pi}{T}$')
     plt.savefig('kwftautocorr.pdf')
-    return
+    return ft

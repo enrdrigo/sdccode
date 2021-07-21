@@ -42,6 +42,24 @@ def thermopolcoeff(nk, chat, enat, em, pos, posatomic, L, nsnap):
 
     return tpc
 
+@njit(fastmath=True, parallel=True)
+def thermopoldipcoeff(nk, dipmol, endip, cdmol,  L, nsnap):
+    tpcdip = np.zeros((nk, 3), dtype=np.complex_)
+    for j in range(nk):
+        tpcdip[j][0] = np.mean(np.sum(np.transpose(dipmol)[0] * np.exp(1j * (np.transpose(cdmol)[0] * (j * 2 * np.pi / L))), axis=0) *\
+                (np.sum(np.transpose(endip)[0]*np.exp(-1j * (np.transpose(cdmol)[0] * (j * 2 * np.pi / L))), axis=0)))* \
+                 16.022 * 1.0e-30 * 4184 / 6.02214e23 * 1.0e-10 / ((L) ** 3 * 1.0e-30 * 1.38e-23 * 300 * 300 * 8.854 * 1.0e-12)
+
+        tpcdip[j][1] = np.mean(np.sum(np.transpose(dipmol)[1] * np.exp(1j * (np.transpose(cdmol)[0] * (j * 2 * np.pi / L))),axis=0) * \
+                (np.sum(np.transpose(endip)[1] * np.exp(-1j * (np.transpose(cdmol)[0] * (j * 2 * np.pi / L))), axis=0))) * \
+                16.022 * 1.0e-30 * 4184 / 6.02214e23 * 1.0e-10 / ((L) ** 3 * 1.0e-30 * 1.38e-23 * 300 * 300 * 8.854 * 1.0e-12)
+
+        tpcdip[j][2] = np.mean(np.sum(np.transpose(dipmol)[2] * np.exp(1j * (np.transpose(cdmol)[0] * (j * 2 * np.pi / L))),axis=0) * \
+                (np.sum(np.transpose(endip)[2] * np.exp(-1j * (np.transpose(cdmol)[0] * (j * 2 * np.pi / L))), axis=0))) * \
+                16.022 * 1.0e-30 * 4184 / 6.02214e23 * 1.0e-10 / ((L) ** 3 * 1.0e-30 * 1.38e-23 * 300 * 300 * 8.854 * 1.0e-12)
+
+    return tpcdip
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 

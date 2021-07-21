@@ -130,7 +130,18 @@ def computeat(GG, Np, L, Linf, nsnap, data_array, poschO, posH1, posH2):
     return ch_at, np.transpose(pos_at)
 
 
-def computeaten(GG, Np, L, Linf, nsnap, data_array):
+def computeaten(GG, Np, L, Linf, nsnap, data_array, poschO, posH1, posH2):
+    nmol = int(Np / 3)
+    #
+    datamol = np.zeros((8, nmol, 3))
+    datamol = data_array.reshape((8, nmol, 3))
+    #
+    en0 = np.zeros(nmol)
+    enH1 = np.zeros(nmol)
+    enH2 = np.zeros(nmol)
+    enO = np.transpose(datamol[6])[0] + np.transpose(datamol[7])[0]
+    enH1 = np.transpose(datamol[6])[1] + np.transpose(datamol[7])[1]
+    enH2 = np.transpose(datamol[6])[2] + np.transpose(datamol[7])[2]
     #
     Gat = np.ones((3, Np))
 
@@ -156,7 +167,10 @@ def computeaten(GG, Np, L, Linf, nsnap, data_array):
     en_at = enat * np.exp(-1j * np.sum(pos_at * Gat, axis=0))
     #
 
-    return en_at, np.transpose(pos_at), np.sum(enat)
+    endip = np.zeros((3, nmol))
+    endip = poschO*(enO-np.sum(enat)/Np) + posH1*(enH1-np.sum(enat)/Np) + posH2*(enH2-np.sum(enat)/Np)
+
+    return en_at, np.transpose(pos_at), np.sum(enat), np.transpose(endip)
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -169,6 +183,7 @@ def initialize(nsnap, Np):
     ch_at = np.zeros((nsnap, Np), dtype=np.complex_)
     dip_at = np.zeros((nsnap, Np, 3), dtype=np.complex_)
     dip_mol = np.zeros((nsnap, nmol, 3), dtype=np.complex_)
+    endip = np.zeros((nsnap, nmol, 3))
     poschO = np.zeros((3, nmol))
     posO = np.zeros((3, nmol))
     posH1 = np.zeros((3, nmol))
@@ -176,7 +191,7 @@ def initialize(nsnap, Np):
     posatomic= np.zeros((nsnap, Np, 3))
     em = np.zeros(nsnap)
     en_at = np.zeros((nsnap, Np), dtype=np.complex_)
-    return cdmol, pos_at, ch_at, dip_at, dip_mol, en_at, em, poschO, posO, posH1, posH2, posatomic
+    return cdmol, pos_at, ch_at, dip_at, dip_mol, en_at, em, endip, poschO, posO, posH1, posH2, posatomic
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -184,7 +199,7 @@ def initialize(nsnap, Np):
 
 def computedipole(Np, L, Linf, nsnap, data_array, posox):
     nmol = int(Np / 3)
-    cdmol, pos_at, ch_at, dip_at, dip_mol, en_at, em, poschO, posO, posH1, posH2, posatomic = initialize(nsnap, Np)
+    cdmol, pos_at, ch_at, dip_at, dip_mol, en_at, em, endip, poschO, posO, posH1, posH2, posatomic = initialize(nsnap, Np)
     G = np.zeros(3)
     G = 2 * np.pi * np.array((1e-8, 1e-8, 1e-8)) / L
     for s in range(nsnap):
@@ -194,6 +209,6 @@ def computedipole(Np, L, Linf, nsnap, data_array, posox):
 
         ch_at[s], pos_at[s] = computeat(G, Np, L, Linf, nsnap, data_array[s].transpose(), poschO, posH1, posH2)
 
-        en_at[s], posatomic[s], em[s] = computeaten(G, Np, L, Linf, nsnap, data_array[s].transpose())
-    return dip_mol, cdmol, ch_at, pos_at, en_at, em, posatomic
+        en_at[s], posatomic[s], em[s], endip[s] = computeaten(G, Np, L, Linf, nsnap, data_array[s].transpose(), poschO, posH1, posH2)
+    return dip_mol, cdmol, ch_at, pos_at, en_at, em, endip, posatomic
 

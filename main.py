@@ -11,8 +11,8 @@ from modules import correlationfunction
 
 start = time.time()
 # INDICATES WHERE ARE THE DATA
-root = '../'
-filename = 'dump1.05fs.lammpstrj'
+root = './'
+filename = 'dump1.1fs.lammpstrj'
 # GETS THE NUMBER OF PARTICLES IN THE SIMULATION
 Npart = initialize.getNpart(filename, root)
 # IF NOT ALREADY DONE SAVE THE DATA IN A BINARY FORMAT SO THAT IN THE FUTURE READS JUST THE BINARY
@@ -39,7 +39,7 @@ start1 = time.time()
 # THE POSITION OF THE CHARGES (IN TIP4P/2005 THE OXY CHARGE IS IN A DIFFERENT POSITION THAN THE OXY ITSELF)
 # POSO SETS THE DISTANCE BETWEEN THE OXY ATOM AND THE OXY CHARGE, IN THE TIP4P MODEL THE POSITIONS ARE DIFFERENT
 posox = float(input('Set the OM distance for the calculation of the dipoles.>\n'))
-dipmol, cdmol, chat, pos, enat, em, posatomic = dipole.computedipole(Npart, Lato, Lmin, nsnapshot, data_arrayy, posox)
+dipmol, cdmol, chat, pos, enat, em, endip, posatomic = dipole.computedipole(Npart, Lato, Lmin, nsnapshot, data_arrayy, posox)
 
 print("Molecular dipoles, molecular positions, charges and charge positions for the trajectory computed in {:10.5f}".format(time.time()-start1)+'s')
 
@@ -63,6 +63,7 @@ start2 = time.time()
 # COMPUTES THE THERMOPOLARIZATION COEFFICIENT FOR NK VALUES OF THE G VECTOR IN THE (1,0,0) DIRECTION:
 # 2\PI/LATO*(J,0,0), J=1,..NK
 tpc = computestatdc.thermopolcoeff(nk, chat, enat,em, pos, posatomic, Lato, nsnapshot)
+tpcdip = computestatdc.thermopoldipcoeff(nk, dipmol, endip, cdmol, Lato, nsnapshot)
 print('Thermopolarization coefficient for {}'.format(nk)+' values of k computed in {:10.5f}'.format(time.time()-start2)+'s')
 
 
@@ -71,14 +72,30 @@ print('Thermopolarization coefficient for {}'.format(nk)+' values of k computed 
 
 file = '{}'.format(Npart)+'{}'.format(nk)+'dielconst.dat'
 f = open(file, 'w+')
-print("k\t"+'e0pol_xx\t'+'e0pol_yy\t'+'e0pol_zz\t'+'e0ch\t'+'thermopolarization coeff\n')
+print("k\t"+'e0pol_xx\t'+'e0pol_yy\t'+'e0pol_zz\t'+'e0ch\n')
 np.set_printoptions(precision=3)
-f.write('#k (in units of 2pi/L(1,0,0))\t'+'e0pol_xx\t'+'e0pol_yy\t'+'e0pol_zz\t'+'e0ch\t'+'thermopolarization coeff\n')
+f.write('#k (in units of 2pi/L(1,0,0))\t'+'e0pol_xx\t'+'e0pol_yy\t'+'e0pol_zz\t'+'e0ch\n')
 for j in range(nk):
-    print('{}\t'.format(j)+'{:10.3f}\t'.format(e0pol[j][0])+'{:10.3f}\t'.format(e0pol[j][1])+'{:10.3f}\t'.format(e0pol[j][2])+'{:10.3f}\t'.format(e0ch[j])+'{:.2e}'.format(tpc[j]))
-    f.write('{}\t'.format(j)+'{:10.3f}\t'.format(e0pol[j][0])+'{:10.3f}\t'.format(e0pol[j][1])+'{:10.3f}\t'.format(e0pol[j][2])+'{:10.3f}\t'.format(e0ch[j])+'{:.2e}\t'.format(np.real(tpc[j]))+'{:.2e}\n'.format(np.imag(tpc[j])))
+    print('{}\t'.format(j)+'{:10.3f}\t'.format(e0pol[j][0])+'{:10.3f}\t'.format(e0pol[j][1])+'{:10.3f}\t'.format(e0pol[j][2])+'{:10.3f}'.format(e0ch[j]))
+    f.write('{}\t'.format(j)+'{:10.3f}\t'.format(e0pol[j][0])+'{:10.3f}\t'.format(e0pol[j][1])+'{:10.3f}\t'.format(e0pol[j][2])+'{:10.3f}\n'.format(e0ch[j]))
 print('The static dielectric constants are saved in '+root+file)
-print('The static dielectric constant and thermopolarization coefficient for {}'.format(nk)+' values of k computed in : {:10.5f}'.format(time.time()-start2)+'s')
+print('The static dielectric constant for {}'.format(nk)+' values of k computed in : {:10.5f}'.format(time.time()-start2)+'s')
+f.close()
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# PRINT THE DIELECTRIC CONSTANT COMPUTED VIA THE POLARIZATION AND VIA THE CHARGES AS A FUNCTION OF G AND SAVE IN A FILE
+
+file = '{}'.format(Npart)+'{}'.format(nk)+'tpc.dat'
+f = open(file, 'w+')
+print("k\t"+'tpcd_xx\t'+'tpcd_yy\t'+'tpcd_zz\t'+'tpcch\n')
+np.set_printoptions(precision=3)
+f.write('#k (in units of 2pi/L(1,0,0))\t'+'tpcd_xx\t'+'tpcd_yy\t'+'tpcd_zz\t'+'tpcch\n')
+for j in range(nk):
+    print('{}\t'.format(j) + '{:10.3f}\t'.format(tpcdip[j][0]) + '{:10.3f}\t'.format(tpcdip[j][1]) + '{:10.3f}\t'.format(tpcdip[j][2]) + '{:.2e}'.format(tpc[j]))
+    f.write('{}\t'.format(j) + '{:10.3f}\t'.format(np.real(tpcdip[j][0])) + '{:10.3f}\t'.format(np.real(tpcdip[j][1])) + '{:10.3f}\t'.format(np.real(tpcdip[j][2])) + '{:10.3f}\n'.format(np.real(tpc[j])))
+print('The thermopolarization coefficient are saved in '+root+file)
+print('The thermopolarization coefficient for {}'.format(nk)+' values of k computed in : {:10.5f}'.format(time.time()-start2)+'s')
 f.close()
 
 
@@ -113,4 +130,7 @@ if c:
 # COMPUTES THE DENSITY-DENSITY CORRELATION FUNCTION AS A FUNCTION OF K AND \OMEGA AND PRINTS IT IN A FILE
 
 nk = int(input('How many k points do you want in the density-density correlation function>'))
-correlationfunction.correlation(nk, nsnapshot, Lato, dipmol, cdmol, chat, pos, enat, em, posatomic)
+ftaf = correlationfunction.correlation(nk, nsnapshot, Lato, dipmol, cdmol, chat, pos, enat, em, posatomic)
+for i in range(ftaf.shape[0]):
+    for j in range(ftaf.shape[1]):
+        pass
