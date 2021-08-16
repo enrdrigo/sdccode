@@ -11,7 +11,7 @@ from modules import correlationfunction
 
 start = time.time()
 # INDICATES WHERE ARE THE DATA
-root = './'
+root = '../'
 filename = 'dump1.1fs.lammpstrj'
 # GETS THE NUMBER OF PARTICLES IN THE SIMULATION
 Npart = initialize.getNpart(filename, root)
@@ -62,7 +62,7 @@ print('Static dielectric constant for {}'.format(nk)+' values of k computed in {
 start2 = time.time()
 # COMPUTES THE THERMOPOLARIZATION COEFFICIENT FOR NK VALUES OF THE G VECTOR IN THE (1,0,0) DIRECTION:
 # 2\PI/LATO*(J,0,0), J=1,..NK
-tpc = computestatdc.thermopolcoeff(nk, chat, enat,em, pos, posatomic, Lato, nsnapshot)
+tpc, sttpc = computestatdc.thermopolcoeff(nk, chat, enat,em, pos, posatomic, Lato, nsnapshot)
 tpcdip = computestatdc.thermopoldipcoeff(nk, dipmol, endip, cdmol, Lato, nsnapshot)
 print('Thermopolarization coefficient for {}'.format(nk)+' values of k computed in {:10.5f}'.format(time.time()-start2)+'s')
 
@@ -88,12 +88,14 @@ f.close()
 
 file = '{}'.format(Npart)+'{}'.format(nk)+'tpc.dat'
 f = open(file, 'w+')
-print("k\t"+'tpcd_xx\t'+'tpcd_yy\t'+'tpcd_zz\t'+'tpcch\n')
+print("k\t"+'tpcd_xx\t'+'tpcd_yy\t'+'tpcd_zz\t'+'tpcch\t'+'std\n')
 np.set_printoptions(precision=3)
-f.write('#k (in units of 2pi/L(1,0,0))\t'+'tpcd_xx\t'+'tpcd_yy\t'+'tpcd_zz\t'+'tpcch\n')
+f.write('#k (in units of 2pi/L(1,0,0))\t'+'tpcd_xx\t'+'tpcd_yy\t'+'tpcd_zz\t'+'tpcch\t'+'std\n')
 for j in range(nk):
-    print('{}\t'.format(j) + '{:10.3f}\t'.format(tpcdip[j][0]) + '{:10.3f}\t'.format(tpcdip[j][1]) + '{:10.3f}\t'.format(tpcdip[j][2]) + '{:.2e}'.format(tpc[j]))
-    f.write('{}\t'.format(j) + '{:10.3f}\t'.format(np.real(tpcdip[j][0])) + '{:10.3f}\t'.format(np.real(tpcdip[j][1])) + '{:10.3f}\t'.format(np.real(tpcdip[j][2])) + '{:10.3f}\n'.format(np.real(tpc[j])))
+    print('{}\t'.format(j) + '{:10.3f}\t'.format(tpcdip[j][0]) + '{:10.3f}\t'.format(tpcdip[j][1]) +\
+          '{:10.3f}\t'.format(tpcdip[j][2]) + '{:.2e}\t'.format(tpc[j]) + '{:.2e}'.format(sttpc[j]))
+    f.write('{}\t'.format(j) + '{:10.3f}\t'.format(np.real(tpcdip[j][0])) + '{:10.3f}\t'.format(np.real(tpcdip[j][1])) +\
+        '{:10.3f}\t'.format(np.real(tpcdip[j][2])) + '{:10.3f}\t'.format(np.real(tpc[j]))+ '{:10.5f}\n'.format(np.real(sttpc[j])))
 print('The thermopolarization coefficient are saved in '+root+file)
 print('The thermopolarization coefficient for {}'.format(nk)+' values of k computed in : {:10.5f}'.format(time.time()-start2)+'s')
 f.close()
