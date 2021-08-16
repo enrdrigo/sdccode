@@ -201,7 +201,7 @@ def computedipole(Np, L, Linf, nsnap, data_array, posox):
     nmol = int(Np / 3)
     cdmol, pos_at, ch_at, dip_at, dip_mol, en_at, em, endip, poschO, posO, posH1, posH2, posatomic = initialize(nsnap, Np)
     G = np.zeros(3)
-    G = 2 * np.pi * np.array((1e-8, 1e-8, 1e-8)) / L
+    G = 2 * np.pi * np.array((0, 0, 0)) / L
     for s in range(nsnap):
         poschO, posO, posH1, posH2 = computeposmol(G, Np, L, Linf, nsnap, data_array[s].transpose(), posox)
 

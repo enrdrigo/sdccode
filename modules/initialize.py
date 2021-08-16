@@ -14,8 +14,9 @@ def saveonbin(filename, root, Np):
         dlist = [float(x.strip('\n')) for x in line.split(' ')]
         d.append(dlist)
     data_arrayy = np.array(d)
-    filesavebin = 'data{}.npy'.format(Np)
+    filesavebin = filename + '{}.npy'.format(Np)
     np.save(root + filesavebin, data_arrayy, allow_pickle=True)
+    f.close()
     return filesavebin
 
 
@@ -23,14 +24,15 @@ def saveonbin(filename, root, Np):
 # GETS FROM THE LAMMPS OUTPUT THE NUMBER OF ATOMS IN THE SIMULATION
 
 def getNpart(filename, root):
-    f = open(root + filename, 'r')
-    oldline = 'noline'
-    flines = f.readlines()
-    for line in flines:
-        if oldline == 'ITEM: NUMBER OF ATOMS\n':
-            Npart = int(line.split()[0])
-            return Npart
-        oldline = line
+    with open(root + filename, 'r') as f:
+        oldline = 'noline'
+        for i in range(15):
+            line = f.readline()
+            if oldline == 'ITEM: NUMBER OF ATOMS\n':
+                Npart = int(line.split()[0])
+                f.close()
+                return Npart
+            oldline = line
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -39,10 +41,11 @@ def getNpart(filename, root):
 def getBoxboundary(filename, root):
     f = open(root + filename, 'r')
     oldline = 'noline'
-    flines = f.readlines()
-    for line in flines:
+    for i in range(15):
+        line = f.readline()
         if oldline == 'ITEM: BOX BOUNDS pp pp pp\n':
             (Linf, Lmax) = (float(line.split()[0]), float(line.split()[1]))
+            f.close()
             return Lmax - Linf, Linf
         oldline = line
 
