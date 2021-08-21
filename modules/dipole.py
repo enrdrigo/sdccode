@@ -202,18 +202,27 @@ def computedipole(Np, L, Linf, nsnap, filename, root, posox):
     fb = open(root + filename, 'rb')
     dati = pk.load(fb)#np.load(root + filename, allow_pickle=True)
     fb.close()
-    data_array = np.reshape(dati, (nsnap, Np, 8))
+    print(type(dati), len(dati), len(dati[0]),)
     nmol = int(Np / 3)
     cdmol, pos_at, ch_at, dip_at, dip_mol, en_at, em, endip, poschO, posO, posH1, posH2, posatomic = initialize(nsnap, Np)
     G = np.zeros(3)
     G = 2 * np.pi * np.array((0, 0, 0)) / L
+    datisnap = np.zeros((Np, 8))
+    l=list()
+    g = open('file.out', '+w')
+    g.write('start compute dipoles\n')
+    g.close()
     for s in range(nsnap):
-        poschO, posO, posH1, posH2 = computeposmol(G, Np, L, Linf, nsnap, np.array(data_array[s]).transpose(), posox)
+        l = dati[s*Np: (s+1)*Np]
 
-        dip_mol[s], cdmol[s] = computemol(G, Np, L, Linf, nsnap, np.array(data_array[s]).transpose(), poschO, posO, posH1, posH2)
+        datisnap=np.array(dati[s*Np: (s+1)*Np])
 
-        ch_at[s], pos_at[s] = computeat(G, Np, L, Linf, nsnap, np.array(data_array[s]).transpose(), poschO, posH1, posH2)
+        poschO, posO, posH1, posH2 = computeposmol(G, Np, L, Linf, nsnap, datisnap.transpose(), posox)
 
-        en_at[s], posatomic[s], em[s], endip[s] = computeaten(G, Np, L, Linf, nsnap, np.array(data_array[s]).transpose(), poschO, posH1, posH2)
+        dip_mol[s], cdmol[s] = computemol(G, Np, L, Linf, nsnap, datisnap.transpose(), poschO, posO, posH1, posH2)
+
+        ch_at[s], pos_at[s] = computeat(G, Np, L, Linf, nsnap, datisnap.transpose(), poschO, posH1, posH2)
+
+        en_at[s], posatomic[s], em[s], endip[s] = computeaten(G, Np, L, Linf, nsnap, datisnap.transpose(), poschO, posH1, posH2)
     return dip_mol, cdmol, ch_at, pos_at, en_at, em, endip, posatomic
 

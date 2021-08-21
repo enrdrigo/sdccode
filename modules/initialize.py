@@ -9,6 +9,9 @@ def saveonbin(filename, root, Np):
     f = open(root + filename, 'r')
     line = f.readline()
     d = []
+    g = open('file.out', '+w')
+    g.write('start translation in bin\n')
+    g.close()
     while (line != ''):
         if len(line.split(' ')) != 8:
             line = f.readline()
@@ -17,6 +20,9 @@ def saveonbin(filename, root, Np):
         line = f.readline()
         d.append(dlist)
     f.close()
+    g = open('file.out', '+w')
+    g.write('done translation in bin\n')
+    g.close()
     #data_arrayy = np.array(d)
     filesavebin = filename + '{}.bin'.format(Np)
     fb = open(root+filesavebin, "wb")
