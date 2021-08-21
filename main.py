@@ -16,15 +16,16 @@ filename = 'dump1.1fs.lammpstrj'
 # GETS THE NUMBER OF PARTICLES IN THE SIMULATION
 Npart = initialize.getNpart(filename, root)
 # IF NOT ALREADY DONE SAVE THE DATA IN A BINARY FORMAT SO THAT IN THE FUTURE READS JUST THE BINARY
-if os.path.exists(root+'data'+'{}'.format(Npart)+'.npy'):
-    filebin = 'data'+'{}'.format(Npart)+'.npy'
+if os.path.exists(root+filename+'{}'.format(Npart)+'.npy'):
+    filebin = filename +'{}'.format(Npart)+'.npy'
 else:
+    print('The file is not alreay saved in a .npy format, wait for the conversion.')
     filebin = initialize.saveonbin(filename, root, Npart)  # JUST DO ONCE!!!! READ DATA FROM THE BINARY INSTEAD
 # GETS THE DIMENSIONS OF THE SIMULATION BOX
 Lato, Lmin = initialize.getBoxboundary(filename, root)
 # GETS THE NUMBER OF SNAPSHOT OF THE SIMULATION. RESHAPE THE ARRAY OF THE DATA SO THAT WE HAVE A MATRIX WITH THE
 # COORDINATES AND THE CHARGES FOR EACH SNAPSHOT
-data_arrayy, nsnapshot = initialize.getDatainshape_andNsnap(filebin, root, Npart)
+nsnapshot = initialize.getNsnap(filebin, root, Npart)
 print('The data are stored in '+root+filename + '\n and written in bynary form in '+root+filebin)
 print('The system has {}'.format(Npart)+' atoms in a box of side {:10.5f}'.format(Lato)+' Angstom')
 print('In the calculation we are using {}'.format(nsnapshot)+' snapshots')
@@ -39,7 +40,7 @@ start1 = time.time()
 # THE POSITION OF THE CHARGES (IN TIP4P/2005 THE OXY CHARGE IS IN A DIFFERENT POSITION THAN THE OXY ITSELF)
 # POSO SETS THE DISTANCE BETWEEN THE OXY ATOM AND THE OXY CHARGE, IN THE TIP4P MODEL THE POSITIONS ARE DIFFERENT
 posox = float(input('Set the OM distance for the calculation of the dipoles.>\n'))
-dipmol, cdmol, chat, pos, enat, em, endip, posatomic = dipole.computedipole(Npart, Lato, Lmin, nsnapshot, data_arrayy, posox)
+dipmol, cdmol, chat, pos, enat, em, endip, posatomic = dipole.computedipole(Npart, Lato, Lmin, nsnapshot, filebin, root, posox)
 
 print("Molecular dipoles, molecular positions, charges and charge positions for the trajectory computed in {:10.5f}".format(time.time()-start1)+'s')
 
