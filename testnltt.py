@@ -16,10 +16,10 @@ import os
 # In[2]:
 
 
-root='./'
+root='../'
 filename='dump1.1fs.lammpstrj'
 L,Linf=initialize.getBoxboundary(filename, root)
-Npart=5184
+Npart=375
 print('lato cella', L)
 f=open('file.out', '+w')
 f.write('lato cella'+'{}\n'.format(L))
@@ -38,9 +38,12 @@ else:
 
 nsnap=initialize.getNsnap(filebin, root, Npart)
 
+g = open('file.out', '+w')
+g.write('got nsnap\n')
+g.close()
 
 # In[5]:
-dip_mol, cdmol, ch_at, pos_ch, en_at, em, endip, pos_at=dipole.computedipole(Npart, L, Linf,nsnap, filebin, root, 0.0)
+dip_mol, cdmol, ch_at, pos_ch, en_at, em, endip, pos_at=dipole.computedipole(Npart, L, Linf,nsnap, filebin, root, 0.125)
 
 nk=20
 nplot=4
@@ -73,7 +76,7 @@ for i in range(1,nk):
     print(i, nltt[i-1], chi[i], ft[i, 0])
 xk=np.linspace(1,nk, nk-1)
 f=open('nltt.dat', 'w+')
-for i in range(nk):
+for i in range(nk-1):
     f.write('{}\t'.format(xk[i]*2*np.pi/L*10)+'{}\n'.format(nltt[i]))
 #plt.plot(xk*2*np.pi/L*10, nltt, 'o-')
 #plt.xlabel(r'k in units of $nm^{-1}$')
@@ -90,4 +93,3 @@ for j in range(1,101):
 xtau=np.linspace(0,nsnap, 100)
 #plt.plot(xtau, tnltt)
 #plt.show()
-
