@@ -197,7 +197,9 @@ def initialize(nsnap, Np):
 # ----------------------------------------------------------------------------------------------------------------------
 # CASTS THE MOLECULAR DIPOLES, MOLECULAR CENTERS OF MASS, ATOMIC CHARGES AND ATOMIC POSITIONS IN NP.ARRAYS.
 
-def computedipole(Np, L, Linf, nsnap, data_array, posox):
+def computedipole(Np, L, Linf, nsnap, filename, root, posox):
+    dati = np.load(root + filename, allow_pickle=True)
+    data_array = np.reshape(dati, (nsnap, Np, 8))
     nmol = int(Np / 3)
     cdmol, pos_at, ch_at, dip_at, dip_mol, en_at, em, endip, poschO, posO, posH1, posH2, posatomic = initialize(nsnap, Np)
     G = np.zeros(3)

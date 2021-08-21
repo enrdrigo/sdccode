@@ -6,17 +6,20 @@ import numpy as np
 
 def saveonbin(filename, root, Np):
     f = open(root + filename, 'r')
-    f1 = f.readlines()
+    line = f.readline()
     d = []
-    for line in f1:
+    while (line != ''):
         if len(line.split(' ')) != 8:
+            line = f.readline()
             continue
         dlist = [float(x.strip('\n')) for x in line.split(' ')]
+        line = f.readline()
         d.append(dlist)
+    f.close()
     data_arrayy = np.array(d)
     filesavebin = filename + '{}.npy'.format(Np)
     np.save(root + filesavebin, data_arrayy, allow_pickle=True)
-    f.close()
+    print('Done', data_arrayy, root + filesavebin)
     return filesavebin
 
 
@@ -54,8 +57,7 @@ def getBoxboundary(filename, root):
 # GETS THE NUMBER OF SNAPSHOT THAT WE ARE CONSIDERING AND PERFORMS A RESHAPE OF THE DATA ARRAY SO THAT WE HAVE FOR EACH
 # SNAPSHOT A MATRIX WITH THE POSITION AND THE CHARGES OF THE MOLECULES
 
-def getDatainshape_andNsnap(filename, root, Np):
+def getNsnap(filename, root, Np):
     dati = np.load(root + filename, allow_pickle=True)
     nsnap = int(len(dati) / Np)
-    data_arrayy = np.reshape(dati, (nsnap, Np, 8))
-    return data_arrayy, nsnap
+    return nsnap
