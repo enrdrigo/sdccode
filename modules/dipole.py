@@ -1,4 +1,5 @@
 import numpy as np
+import pickle as pk
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -198,19 +199,21 @@ def initialize(nsnap, Np):
 # CASTS THE MOLECULAR DIPOLES, MOLECULAR CENTERS OF MASS, ATOMIC CHARGES AND ATOMIC POSITIONS IN NP.ARRAYS.
 
 def computedipole(Np, L, Linf, nsnap, filename, root, posox):
-    dati = np.load(root + filename, allow_pickle=True)
+    fb = open(root + filename, 'rb')
+    dati = pk.load(fb)#np.load(root + filename, allow_pickle=True)
+    fb.close()
     data_array = np.reshape(dati, (nsnap, Np, 8))
     nmol = int(Np / 3)
     cdmol, pos_at, ch_at, dip_at, dip_mol, en_at, em, endip, poschO, posO, posH1, posH2, posatomic = initialize(nsnap, Np)
     G = np.zeros(3)
     G = 2 * np.pi * np.array((0, 0, 0)) / L
     for s in range(nsnap):
-        poschO, posO, posH1, posH2 = computeposmol(G, Np, L, Linf, nsnap, data_array[s].transpose(), posox)
+        poschO, posO, posH1, posH2 = computeposmol(G, Np, L, Linf, nsnap, np.array(data_array[s]).transpose(), posox)
 
-        dip_mol[s], cdmol[s] = computemol(G, Np, L, Linf, nsnap, data_array[s].transpose(), poschO, posO, posH1, posH2)
+        dip_mol[s], cdmol[s] = computemol(G, Np, L, Linf, nsnap, np.array(data_array[s]).transpose(), poschO, posO, posH1, posH2)
 
-        ch_at[s], pos_at[s] = computeat(G, Np, L, Linf, nsnap, data_array[s].transpose(), poschO, posH1, posH2)
+        ch_at[s], pos_at[s] = computeat(G, Np, L, Linf, nsnap, np.array(data_array[s]).transpose(), poschO, posH1, posH2)
 
-        en_at[s], posatomic[s], em[s], endip[s] = computeaten(G, Np, L, Linf, nsnap, data_array[s].transpose(), poschO, posH1, posH2)
+        en_at[s], posatomic[s], em[s], endip[s] = computeaten(G, Np, L, Linf, nsnap, np.array(data_array[s]).transpose(), poschO, posH1, posH2)
     return dip_mol, cdmol, ch_at, pos_at, en_at, em, endip, posatomic
 

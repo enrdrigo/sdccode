@@ -1,4 +1,5 @@
 import numpy as np
+import pickle as pk
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -16,10 +17,13 @@ def saveonbin(filename, root, Np):
         line = f.readline()
         d.append(dlist)
     f.close()
-    data_arrayy = np.array(d)
-    filesavebin = filename + '{}.npy'.format(Np)
-    np.save(root + filesavebin, data_arrayy, allow_pickle=True)
-    print('Done', data_arrayy, root + filesavebin)
+    #data_arrayy = np.array(d)
+    filesavebin = filename + '{}.bin'.format(Np)
+    fb = open(root+filesavebin, "wb")
+    pk.dump(d, fb)
+    fb.close()
+    #np.save(root + filesavebin, d , allow_pickle=True)
+    print('Done',  root + filesavebin)
     return filesavebin
 
 
@@ -58,6 +62,8 @@ def getBoxboundary(filename, root):
 # SNAPSHOT A MATRIX WITH THE POSITION AND THE CHARGES OF THE MOLECULES
 
 def getNsnap(filename, root, Np):
-    dati = np.load(root + filename, allow_pickle=True)
+    fb = open(filename, "rb")
+    dati = pk.load(fb)#np.load(root + filename, allow_pickle=True)
+    fb.close()
     nsnap = int(len(dati) / Np)
     return nsnap
