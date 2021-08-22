@@ -13,16 +13,16 @@ def computestatdc(nk, dipmol, cdmol, chat, pos, L, nsnap):
     e0pol = np.zeros((nk, 3))
     e0ch = np.zeros(nk)
     for j in range(nk):
-        e0pol[j][0] = 1 + (16.022**2) * np.sum(np.abs(np.sum(np.transpose(dipmol)[0] *\
+        e0pol[j][0] = (16.022**2) * np.sum(np.abs(np.sum(np.transpose(dipmol)[0] *\
                     np.exp(1j * (np.transpose(cdmol)[0] * (j * 2 * np.pi / L + np.sqrt(3) * 2 * np.pi / L * 1e-8))), axis=0))**2)/nsnap\
                     * 1.0e5 / (L**3 * 1.38 * 300 * 8.854)
-        e0pol[j][1] = 1 + (16.022**2) * np.sum(np.abs(np.sum(np.transpose(dipmol)[1] *\
+        e0pol[j][1] = (16.022**2) * np.sum(np.abs(np.sum(np.transpose(dipmol)[1] *\
                     np.exp(1j * (np.transpose(cdmol)[0] * (j * 2 * np.pi / L + np.sqrt(3) * 2 * np.pi / L * 1e-8))), axis=0))**2)/nsnap\
                     * 1.0e5 / (L**3 * 1.38 * 300 * 8.854)
-        e0pol[j][2] = 1 + (16.022**2) * np.sum(np.abs(np.sum(np.transpose(dipmol)[2] *\
+        e0pol[j][2] = (16.022**2) * np.sum(np.abs(np.sum(np.transpose(dipmol)[2] *\
                     np.exp(1j * (np.transpose(cdmol)[0] * (j * 2 * np.pi / L + np.sqrt(3) * 2 * np.pi / L * 1e-8))), axis=0))**2)/nsnap\
                     * 1.0e5 / (L**3 * 1.38 * 300 * 8.854)
-        e0ch[j] = 1 + (16.022**2) * np.mean(np.abs(np.sum(np.transpose(chat) *\
+        e0ch[j] = (16.022**2) * np.mean(np.abs(np.sum(np.transpose(chat) *\
                 np.exp(1j * (np.transpose(pos)[0] * (j * 2 * np.pi / L + np.sqrt(3) * 2 * np.pi / L * 1e-8))), axis=0))**2)\
                 / ((j * 2 * np.pi / L + np.sqrt(3) * 2 * np.pi / L * 1e-8)**2) * 1.0e5 / (L**3 * 1.38 * 300 * 8.854)
     return e0pol, e0ch
