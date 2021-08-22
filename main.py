@@ -16,10 +16,10 @@ filename = 'dump1.1fs.lammpstrj'
 # GETS THE NUMBER OF PARTICLES IN THE SIMULATION
 Npart = initialize.getNpart(filename, root)
 # IF NOT ALREADY DONE SAVE THE DATA IN A BINARY FORMAT SO THAT IN THE FUTURE READS JUST THE BINARY
-if os.path.exists(root+filename+'{}'.format(Npart)+'.bin'):
-    filebin = filename +'{}'.format(Npart)+'.bin'
+if os.path.exists(root+filename+'{}'.format(Npart)+'.npz'):
+    filebin = filename +'{}'.format(Npart)+'.npz'
 else:
-    print('The file is not alreay saved in a .bin format, wait for the conversion.')
+    print('The file is not alreay saved in a .npz format, wait for the conversion.')
     filebin = initialize.saveonbin(filename, root, Npart)  # JUST DO ONCE!!!! READ DATA FROM THE BINARY INSTEAD
 # GETS THE DIMENSIONS OF THE SIMULATION BOX
 Lato, Lmin = initialize.getBoxboundary(filename, root)
