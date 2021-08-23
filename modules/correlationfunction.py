@@ -4,7 +4,7 @@ from scipy import signal
 from scipy.fft import fft
 
 
-def correlation(nk, nsnap, L, dip_mol, cdmol, ch_at, pos_ch, en_at, em, pos_at):
+def correlation(nk, nsnap, L, en_at, pos_at):
 
     q = np.zeros((nk, nsnap), dtype=np.complex_)
     q1 = np.zeros((nk, nsnap), dtype=np.complex_)

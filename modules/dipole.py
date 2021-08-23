@@ -1,12 +1,11 @@
 import numpy as np
-import pickle as pk
 
 
 # ----------------------------------------------------------------------------------------------------------------------
 # COMPUTES THE POSITION OF THE OXY AND OF THE TWO HYDROGENS AT GIVEN SNAPSHOT. IT ALSO GETS THE POSITION OF THE
 # FOURTH PARTICLE IN THE TIP4P/2005 MODEL OF WATER WHERE THERE IS THE CHARGE OF THE OXY (SEE TIP4P/2005 MODEL OF WATER).
 
-def computeposmol(GG, Np, L, Linf, nsnap, data_array, posox):
+def computeposmol(Np, L, Linf, nsnap, data_array, posox):
     nmol = int(Np / 3)
     datamol = np.zeros((8, nmol, 3))
     datamol = data_array.reshape((8, nmol, 3))
@@ -43,17 +42,10 @@ def computeposmol(GG, Np, L, Linf, nsnap, data_array, posox):
 # COMPUTES THE MOLECULAR DIPOLES AND THE CENTER OF MASS OF THE MOLECULES AT GIVEN SNAPSHOT. COMPITING THE MOLECULAR
 # DIPOLE WE MUST REMEMBER THAT THE OXY CHARGE IS NOT LOCATED IN THE OXY POSITION (SEE TIP4P/2005 MODEL OF WATER).
 
-def computemol(GG, Np, L, Linf, nsnap, data_array, poschO, posO, posH1, posH2):
+def computemol(Np, L, Linf, nsnap, data_array, poschO, posO, posH1, posH2):
     nmol = int(Np / 3)
     datamol = np.zeros((8, nmol, 3))
     datamol = data_array.reshape((8, nmol, 3))
-
-    #
-    Gmol = np.ones((3, nmol))
-
-    Gmol[0] = GG[0] * np.ones(nmol)
-    Gmol[1] = GG[1] * np.ones(nmol)
-    Gmol[2] = GG[2] * np.ones(nmol)
     #
 
     #
@@ -76,8 +68,8 @@ def computemol(GG, Np, L, Linf, nsnap, data_array, poschO, posO, posH1, posH2):
     #
 
     #
-    dip_mol0 = np.zeros((3, nmol), dtype=np.complex_)
-    dip_mol0 = pos_mch * np.exp(1j * np.sum(cdmmol * Gmol, axis=0))
+    dip_mol0 = np.zeros((3, nmol))
+    dip_mol0 = pos_mch
     #
 
     return np.transpose(dip_mol0), np.transpose(cdmmol)
@@ -87,16 +79,8 @@ def computemol(GG, Np, L, Linf, nsnap, data_array, poschO, posO, posH1, posH2):
 # COMPUTES THE CHARGE AND ATOMIC POSITION ARRAYS OF THE ATOMS AT A GIVEN SNAPSHOT. THE OXY POSITION IS SHIFTED ACCORDING
 # TO THE TIP4P/2005 MODEL OF WATER.
 
-def computeat(GG, Np, L, Linf, nsnap, data_array, poschO, posH1, posH2):
+def computeat(Np, L, Linf, nsnap, data_array, poschO, posH1, posH2):
     nmol = int(Np / 3)
-
-    #
-    Gat = np.ones((3, Np))
-
-    Gat[0] = GG[0] * np.ones(Np)
-    Gat[1] = GG[1] * np.ones(Np)
-    Gat[2] = GG[2] * np.ones(Np)
-    #
 
     #
     chat = np.zeros(Np)
@@ -119,19 +103,14 @@ def computeat(GG, Np, L, Linf, nsnap, data_array, poschO, posH1, posH2):
     # THIS IS IN FACT THE CHARGE TIMES A PHASE WHERE GAT = 2 * np.pi * np.array((1e-8, 1e-8, 1e-8)) / L. I DO THIS
     # IN ORDER TO COMPUTE PROPERLY THE STATIC DIELECTRIC CONSTANT VIA THE FOURIER TRANFORM OR THE CHARGE OVER
     # THE MODULUS OF G,  AT G \APPROX 0
-    ch_at = np.zeros(Np, dtype=np.complex_)
-    ch_at = chat * np.exp(1j * np.sum(pos_at * Gat, axis=0))
-    #
-
-    #
-    dip_k_rm_at = np.zeros((3, Np))
-    dip_k_rm_at = pos_at * chat * np.exp(1j * np.sum(pos_at * Gat, axis=0))
+    ch_at = np.zeros(Np)
+    ch_at = chat
     #
 
     return ch_at, np.transpose(pos_at)
 
 
-def computeaten(GG, Np, L, Linf, nsnap, data_array, poschO, posH1, posH2):
+def computeaten(Np, L, Linf, nsnap, data_array, poschO, posH1, posH2):
     nmol = int(Np / 3)
     #
     datamol = np.zeros((8, nmol, 3))
@@ -143,13 +122,6 @@ def computeaten(GG, Np, L, Linf, nsnap, data_array, poschO, posH1, posH2):
     enO = np.transpose(datamol[6])[0] + np.transpose(datamol[7])[0]
     enH1 = np.transpose(datamol[6])[1] + np.transpose(datamol[7])[1]
     enH2 = np.transpose(datamol[6])[2] + np.transpose(datamol[7])[2]
-    #
-    Gat = np.ones((3, Np))
-
-    Gat[0] = GG[0] * np.ones(Np)
-    Gat[1] = GG[1] * np.ones(Np)
-    Gat[2] = GG[2] * np.ones(Np)
-    #
 
     #
     enat = np.zeros(Np)
@@ -164,8 +136,8 @@ def computeaten(GG, Np, L, Linf, nsnap, data_array, poschO, posH1, posH2):
     #
 
     #
-    en_at = np.zeros(Np, dtype=np.complex_)
-    en_at = enat * np.exp(-1j * np.sum(pos_at * Gat, axis=0))
+    en_at = np.zeros(Np)
+    en_at = enat
     #
 
     endip = np.zeros((3, nmol))
@@ -177,13 +149,23 @@ def computeaten(GG, Np, L, Linf, nsnap, data_array, poschO, posH1, posH2):
 # ----------------------------------------------------------------------------------------------------------------------
 # INITIALIZES THE ARRAY NEEDED IN THE ROUTINE staticdc SO THAT IT IS MORE EASILY READABLE.
 
-def initialize(nsnap, Np):
+def initializestatdc(nsnap, Np):
     nmol = int(Np / 3)
     cdmol = np.zeros((nsnap, nmol, 3))
     pos_at = np.zeros((nsnap, Np, 3))
-    ch_at = np.zeros((nsnap, Np), dtype=np.complex_)
-    dip_at = np.zeros((nsnap, Np, 3), dtype=np.complex_)
-    dip_mol = np.zeros((nsnap, nmol, 3), dtype=np.complex_)
+    ch_at = np.zeros((nsnap, Np))
+    dip_mol = np.zeros((nsnap, nmol, 3))
+    poschO = np.zeros((3, nmol))
+    posO = np.zeros((3, nmol))
+    posH1 = np.zeros((3, nmol))
+    posH2 = np.zeros((3, nmol))
+    return cdmol, pos_at, ch_at, dip_mol, poschO, posO, posH1, posH2
+
+
+def initializetp(nsnap, Np):
+    nmol = int(Np / 3)
+    pos_at = np.zeros((nsnap, Np, 3))
+    ch_at = np.zeros((nsnap, Np))
     endip = np.zeros((nsnap, nmol, 3))
     poschO = np.zeros((3, nmol))
     posO = np.zeros((3, nmol))
@@ -191,33 +173,111 @@ def initialize(nsnap, Np):
     posH2 = np.zeros((3, nmol))
     posatomic= np.zeros((nsnap, Np, 3))
     em = np.zeros(nsnap)
-    en_at = np.zeros((nsnap, Np), dtype=np.complex_)
-    return cdmol, pos_at, ch_at, dip_at, dip_mol, en_at, em, endip, poschO, posO, posH1, posH2, posatomic
+    en_at = np.zeros((nsnap, Np))
+    return pos_at, ch_at, en_at, em, endip, poschO, posO, posH1, posH2, posatomic
+
+
+def initializetpdip(nsnap, Np):
+    nmol = int(Np / 3)
+    cdmol = np.zeros((nsnap, nmol, 3))
+    dip_mol = np.zeros((nsnap, nmol, 3))
+    endip = np.zeros((nsnap, nmol, 3))
+    poschO = np.zeros((3, nmol))
+    posO = np.zeros((3, nmol))
+    posH1 = np.zeros((3, nmol))
+    posH2 = np.zeros((3, nmol))
+    posatomic = np.zeros((nsnap, Np, 3))
+    em = np.zeros(nsnap)
+    en_at = np.zeros((nsnap, Np))
+    return cdmol, dip_mol, en_at, em, endip, poschO, posO, posH1, posH2, posatomic
+
+
+def initializecorren(nsnap, Np):
+    nmol = int(Np / 3)
+    endip = np.zeros((nsnap, nmol, 3))
+    poschO = np.zeros((3, nmol))
+    posO = np.zeros((3, nmol))
+    posH1 = np.zeros((3, nmol))
+    posH2 = np.zeros((3, nmol))
+    posatomic = np.zeros((nsnap, Np, 3))
+    em = np.zeros(nsnap)
+    en_at = np.zeros((nsnap, Np))
+    return en_at, em, endip, poschO, posO, posH1, posH2, posatomic
 
 
 # ----------------------------------------------------------------------------------------------------------------------
 # CASTS THE MOLECULAR DIPOLES, MOLECULAR CENTERS OF MASS, ATOMIC CHARGES AND ATOMIC POSITIONS IN NP.ARRAYS.
 
-def computedipole(Np, L, Linf, nsnap, filename, root, posox):
-    dati = np.load(root + filename)
-    dataarray = dati['arr_0']
+def computedipolestatdc(Np, L, Linf, nsnap, dati, posox):
     datisnap = np.zeros((Np, 8))
     nmol = int(Np / 3)
-    cdmol, pos_at, ch_at, dip_at, dip_mol, en_at, em, endip, poschO, posO, posH1, posH2, posatomic = initialize(nsnap, Np)
-    G = np.zeros(3)
-    G = 2 * np.pi * np.array((0, 0, 0)) / L
+    cdmol, pos_at, ch_at, dip_mol, poschO, posO, posH1, posH2 = initializestatdc(nsnap, Np)
+
     g = open('file.out', '+w')
     g.write('start compute dipoles\n')
     g.close()
     for s in range(nsnap):
-        datisnap = dataarray[s*Np: (s+1)*Np]
+        datisnap = np.array(dati[s*Np: (s+1)*Np])
 
-        poschO, posO, posH1, posH2 = computeposmol(G, Np, L, Linf, nsnap, datisnap.transpose(), posox)
+        poschO, posO, posH1, posH2 = computeposmol(Np, L, Linf, nsnap, datisnap.transpose(), posox)
 
-        dip_mol[s], cdmol[s] = computemol(G, Np, L, Linf, nsnap, datisnap.transpose(), poschO, posO, posH1, posH2)
+        dip_mol[s], cdmol[s] = computemol(Np, L, Linf, nsnap, datisnap.transpose(), poschO, posO, posH1, posH2)
 
-        ch_at[s], pos_at[s] = computeat(G, Np, L, Linf, nsnap, datisnap.transpose(), poschO, posH1, posH2)
+        ch_at[s], pos_at[s] = computeat(Np, L, Linf, nsnap, datisnap.transpose(), poschO, posH1, posH2)
 
-        en_at[s], posatomic[s], em[s], endip[s] = computeaten(G, Np, L, Linf, nsnap, datisnap.transpose(), poschO, posH1, posH2)
-    return dip_mol, cdmol, ch_at, pos_at, en_at, em, endip, posatomic
+    return dip_mol, cdmol, ch_at, pos_at
 
+
+def computedipoletp(Np, L, Linf, nsnap, dati, posox):
+    datisnap = np.zeros((Np, 8))
+    nmol = int(Np / 3)
+    pos_at, ch_at, en_at, em, endip, poschO, posO, posH1, posH2, posatomic = initializetp(nsnap, Np)
+    g = open('file.out', '+w')
+    g.write('start compute dipoles\n')
+    g.close()
+    for s in range(nsnap):
+        datisnap = np.array(dati[s*Np: (s+1)*Np])
+
+        poschO, posO, posH1, posH2 = computeposmol(Np, L, Linf, nsnap, datisnap.transpose(), posox)
+
+        ch_at[s], pos_at[s] = computeat(Np, L, Linf, nsnap, datisnap.transpose(), poschO, posH1, posH2)
+
+        en_at[s], posatomic[s], em[s], endip[s] = computeaten(Np, L, Linf, nsnap, datisnap.transpose(), poschO, posH1, posH2)
+
+    return ch_at, pos_at, en_at, em, posatomic
+
+
+def computedipoletpdip(Np, L, Linf, nsnap, dati, posox):
+    datisnap = np.zeros((Np, 8))
+    nmol = int(Np / 3)
+    cdmol, dip_mol, en_at, em, endip, poschO, posO, posH1, posH2, posatomic = initializetpdip(nsnap, Np)
+    g = open('file.out', '+w')
+    g.write('start compute dipoles\n')
+    g.close()
+    for s in range(nsnap):
+        datisnap = np.array(dati[s*Np: (s+1)*Np])
+
+        poschO, posO, posH1, posH2 = computeposmol(Np, L, Linf, nsnap, datisnap.transpose(), posox)
+
+        dip_mol[s], cdmol[s] = computemol(Np, L, Linf, nsnap, datisnap.transpose(), poschO, posO, posH1, posH2)
+
+        en_at[s], posatomic[s], em[s], endip[s] = computeaten(Np, L, Linf, nsnap, datisnap.transpose(), poschO, posH1, posH2)
+
+    return dip_mol, cdmol, endip
+
+
+def computedipolecorren(Np, L, Linf, nsnap, dati, posox):
+    datisnap = np.zeros((Np, 8))
+    nmol = int(Np / 3)
+    en_at, em, endip, poschO, posO, posH1, posH2, posatomic = initializecorren(nsnap, Np)
+    g = open('file.out', '+w')
+    g.write('start compute dipoles\n')
+    g.close()
+    for s in range(nsnap):
+        datisnap = np.array(dati[s * Np: (s + 1) * Np])
+
+        poschO, posO, posH1, posH2 = computeposmol(Np, L, Linf, nsnap, datisnap.transpose(), posox)
+
+        en_at[s], posatomic[s], em[s], endip[s] = computeaten(Np, L, Linf, nsnap, datisnap.transpose(), poschO, posH1, posH2)
+
+    return en_at, posatomic

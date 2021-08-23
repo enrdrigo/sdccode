@@ -4,28 +4,25 @@ import numpy as np
 # ----------------------------------------------------------------------------------------------------------------------
 # READS THE DATA FROM THE LAMMPS OUTPUT AND SAVE IT IN A BINARY FORM. IT CAN TAKE VERY LONG.
 
-def saveonbin(filename, root, Np):
-    f = open(root + filename, 'r')
-    line = f.readline()
-    d = []
-    g = open('file.out', '+w')
-    g.write('start translation in bin\n')
-    g.close()
-    while (line != ''):
-        if len(line.split(' ')) != 8:
-            line = f.readline()
-            continue
-        dlist = [float(x.strip('\n')) for x in line.split(' ')]
+def getdatafromfile(filename, root, Np):
+    with  open(root + filename, 'r') as f:
         line = f.readline()
-        d.append(dlist)
-    f.close()
-    g = open('file.out', '+w')
-    g.write('done translation in bin\n')
-    g.close()
-    filesavebin = filename + '{}.npz'.format(Np)
-    np.savez_compressed(root+filesavebin, d)
-    print('Done',  root + filesavebin)
-    return filesavebin
+        d = []
+        g = open('file.out', '+w')
+        g.write('start translation in bin\n')
+        g.close()
+        while (line != ''):
+            if len(line.split(' ')) != 8:
+                line = f.readline()
+                continue
+            dlist = [float(x.strip('\n')) for x in line.split(' ')]
+            line = f.readline()
+            d.append(dlist)
+        g = open('file.out', '+w')
+        g.write('done translation in bin\n')
+        g.close()
+
+    return d
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -47,23 +44,22 @@ def getNpart(filename, root):
 # GETS FROM THE LAMMPS OUTPUT THE DIMENTION OF THE SIDE OF THE SIMULATION BOX
 
 def getBoxboundary(filename, root):
-    f = open(root + filename, 'r')
-    oldline = 'noline'
-    for i in range(15):
-        line = f.readline()
-        if oldline == 'ITEM: BOX BOUNDS pp pp pp\n':
-            (Linf, Lmax) = (float(line.split()[0]), float(line.split()[1]))
-            f.close()
-            return Lmax - Linf, Linf
-        oldline = line
+    with open(root + filename, 'r') as f:
+        oldline = 'noline'
+        for i in range(15):
+            line = f.readline()
+            if oldline == 'ITEM: BOX BOUNDS pp pp pp\n':
+                (Linf, Lmax) = (float(line.split()[0]), float(line.split()[1]))
+                f.close()
+                return Lmax - Linf, Linf
+            oldline = line
 
 
 # ----------------------------------------------------------------------------------------------------------------------
 # GETS THE NUMBER OF SNAPSHOT THAT WE ARE CONSIDERING AND PERFORMS A RESHAPE OF THE DATA ARRAY SO THAT WE HAVE FOR EACH
 # SNAPSHOT A MATRIX WITH THE POSITION AND THE CHARGES OF THE MOLECULES
 
-def getNsnap(filename, root, Np):
-    dati = np.load(root+filename)
-    nsnap = int(len(dati['arr_0']) / Np)
-    print(nsnap, dati.files)
+def getNsnap(dati, Np):
+    nsnap = int(len(dati) / Np)
+    print(nsnap)
     return nsnap
