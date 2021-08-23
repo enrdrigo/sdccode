@@ -3,43 +3,39 @@ from modules import dipole
 import numpy as np
 from scipy import signal
 from scipy.fft import fft
-import os
 
 
 root='../'
 filename='dump1.1fs.lammpstrj'
 L,Linf=initialize.getBoxboundary(filename, root)
-Npart=375
+Npart = initialize.getNpart(filename, root)
 print('lato cella', L)
 f=open('file.out', '+w')
 f.write('lato cella'+'{}\n'.format(L))
 f.close()
 
 
-if os.path.exists(root+filename+'{}'.format(Npart)+'.npz'):
-    filebin = filename+'{}'.format(Npart)+'.npz'
-else:
-    filebin = initialize.saveonbin(filename, root, Npart)
+
+dati = initialize.getdatafromfile(filename, root, Npart)
 
 
-nsnap = initialize.getNsnap(filebin, root, Npart)
+nsnap = initialize.getNsnap(dati, Npart)
 
 
 g = open('file.out', '+w')
 g.write('got nsnap\n')
 g.close()
 
-
-dip_mol, cdmol, ch_at, pos_ch, en_at, em, endip, pos_at=dipole.computedipole(Npart, L, Linf,nsnap, filebin, root, 0.125)
-
-
 nk=20
 nplot=4
 nkpl=10
 q=np.zeros((nk, nsnap), dtype=np.complex_)
 q1=np.zeros((nk, nsnap), dtype=np.complex_)
+G=np.zeros(3)
+en_at, pos_at= dipole.computedipolecorren(Npart, L, Linf, nsnap, dati, 0.125)
 for i in range(nk):
-    q1[i]=np.sum((en_at[:,:])*np.exp(-1j*pos_at[:,:,0]*2*i*np.pi/L), axis=1)
+    q1[i]=np.sum(en_at[:, :]*np.exp(-1j*pos_at[:, :, 0]*2*i*np.pi/L), axis=1)
+
 qm=np.sum(q1, axis=1)/nsnap
 q=np.transpose(np.transpose(q1)-qm)
 

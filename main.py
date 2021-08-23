@@ -16,17 +16,13 @@ filename = 'dump1.1fs.lammpstrj'
 # GETS THE NUMBER OF PARTICLES IN THE SIMULATION
 Npart = initialize.getNpart(filename, root)
 # IF NOT ALREADY DONE SAVE THE DATA IN A BINARY FORMAT SO THAT IN THE FUTURE READS JUST THE BINARY
-if os.path.exists(root+filename+'{}'.format(Npart)+'.npz'):
-    filebin = filename +'{}'.format(Npart)+'.npz'
-else:
-    print('The file is not alreay saved in a .npz format, wait for the conversion.')
-    filebin = initialize.saveonbin(filename, root, Npart)  # JUST DO ONCE!!!! READ DATA FROM THE BINARY INSTEAD
+dati = initialize.getdatafromfile(filename, root, Npart)  # JUST DO ONCE!!!! READ DATA FROM THE BINARY INSTEAD
 # GETS THE DIMENSIONS OF THE SIMULATION BOX
 Lato, Lmin = initialize.getBoxboundary(filename, root)
 # GETS THE NUMBER OF SNAPSHOT OF THE SIMULATION. RESHAPE THE ARRAY OF THE DATA SO THAT WE HAVE A MATRIX WITH THE
 # COORDINATES AND THE CHARGES FOR EACH SNAPSHOT
-nsnapshot = initialize.getNsnap(filebin, root, Npart)
-print('The data are stored in '+root+filename + '\n and written in bynary form in '+root+filebin)
+nsnapshot = initialize.getNsnap(dati, Npart)
+print('The data are stored in '+root+filename)
 print('The system has {}'.format(Npart)+' atoms in a box of side {:10.5f}'.format(Lato)+' Angstom')
 print('In the calculation we are using {}'.format(nsnapshot)+' snapshots')
 print('Initialization done in {:10.5f}'. format(time.time()-start)+'s')
@@ -40,7 +36,7 @@ start1 = time.time()
 # THE POSITION OF THE CHARGES (IN TIP4P/2005 THE OXY CHARGE IS IN A DIFFERENT POSITION THAN THE OXY ITSELF)
 # POSO SETS THE DISTANCE BETWEEN THE OXY ATOM AND THE OXY CHARGE, IN THE TIP4P MODEL THE POSITIONS ARE DIFFERENT
 posox = float(input('Set the OM distance for the calculation of the dipoles.>\n'))
-dipmol, cdmol, chat, pos, enat, em, endip, posatomic = dipole.computedipole(Npart, Lato, Lmin, nsnapshot, filebin, root, posox)
+dipmol, cdmol, chat, pos = dipole.computedipolestatdc(Npart, Lato, Lmin, nsnapshot, dati, posox)
 
 print("Molecular dipoles, molecular positions, charges and charge positions for the trajectory computed in {:10.5f}".format(time.time()-start1)+'s')
 
@@ -54,6 +50,10 @@ nk = 120
 # 2\PI/LATO*(J,0,0), J=1,..NK
 e0pol, e0ch = computestatdc.computestatdc(nk, dipmol, cdmol, chat, pos, Lato, 1)
 e0pol, e0ch = computestatdc.computestatdc(nk, dipmol, cdmol, chat, pos, Lato, nsnapshot)
+dipmol = []
+cdmol = []
+chat = []
+pos = []
 print('Static dielectric constant for {}'.format(nk)+' values of k computed in {:10.5f}'.format(time.time()-start2)+'s')
 
 
@@ -63,8 +63,18 @@ print('Static dielectric constant for {}'.format(nk)+' values of k computed in {
 start2 = time.time()
 # COMPUTES THE THERMOPOLARIZATION COEFFICIENT FOR NK VALUES OF THE G VECTOR IN THE (1,0,0) DIRECTION:
 # 2\PI/LATO*(J,0,0), J=1,..NK
-tpc, sttpc = computestatdc.thermopolcoeff(nk, chat, enat,em, pos, posatomic, Lato, nsnapshot)
+chat, pos, enat, em, posatomic = dipole.computedipoletp(Npart, Lato, Lmin, nsnapshot, dati, posox)
+tpc, sttpc = computestatdc.thermopolcoeff(nk, chat, enat, em, pos, posatomic, Lato, nsnapshot)
+chat = []
+pos = []
+enat = []
+em = []
+posatomic = []
+dipmol, cdmol, endip = dipole.computedipoletpdip(Npart, Lato, Lmin, nsnapshot, dati, posox)
 tpcdip = computestatdc.thermopoldipcoeff(nk, dipmol, endip, cdmol, Lato, nsnapshot)
+dipmol = []
+cdmol = []
+endip = []
 print('Thermopolarization coefficient for {}'.format(nk)+' values of k computed in {:10.5f}'.format(time.time()-start2)+'s')
 
 
@@ -132,8 +142,10 @@ if c:
 # ----------------------------------------------------------------------------------------------------------------------
 # COMPUTES THE DENSITY-DENSITY CORRELATION FUNCTION AS A FUNCTION OF K AND \OMEGA AND PRINTS IT IN A FILE
 
+enat, posatomic = dipole.computedipolecorren(Npart, Lato, Lmin, nsnapshot, dati, posox)
+
 nk = int(input('How many k points do you want in the density-density correlation function>'))
-ftaf = correlationfunction.correlation(nk, nsnapshot, Lato, dipmol, cdmol, chat, pos, enat, em, posatomic)
+ftaf = correlationfunction.correlation(nk, nsnapshot, Lato, enat, posatomic)
 for i in range(ftaf.shape[0]):
     for j in range(ftaf.shape[1]):
         pass
