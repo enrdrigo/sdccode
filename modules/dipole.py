@@ -213,7 +213,7 @@ def computedipolestatdc(Np, L, Linf, nsnap, dati, posox):
     nmol = int(Np / 3)
     cdmol, pos_at, ch_at, dip_mol, poschO, posO, posH1, posH2 = initializestatdc(nsnap, Np)
 
-    g = open('file.out', '+w')
+    g = open('file.out', 'a')
     g.write('start compute dipoles\n')
     g.close()
     for s in range(nsnap):
@@ -223,7 +223,7 @@ def computedipolestatdc(Np, L, Linf, nsnap, dati, posox):
 
         dip_mol[s], cdmol[s] = computemol(Np, L, Linf, nsnap, datisnap.transpose(), poschO, posO, posH1, posH2)
 
-        ch_at[s], pos_at[s] = computeat(Np, L, Linf, nsnap, datisnap.transpose(), poschO, posH1, posH2)
+        ch_at[s], pos_at[s] = computeat(Np, L, Linf, nsnap, datisnap.transpose(), posO, posH1, posH2)
 
     return dip_mol, cdmol, ch_at, pos_at
 
@@ -232,7 +232,7 @@ def computedipoletp(Np, L, Linf, nsnap, dati, posox):
     datisnap = np.zeros((Np, 8))
     nmol = int(Np / 3)
     pos_at, ch_at, en_at, em, endip, poschO, posO, posH1, posH2, posatomic = initializetp(nsnap, Np)
-    g = open('file.out', '+w')
+    g = open('file.out', 'a')
     g.write('start compute dipoles\n')
     g.close()
     for s in range(nsnap):
@@ -242,7 +242,7 @@ def computedipoletp(Np, L, Linf, nsnap, dati, posox):
 
         ch_at[s], pos_at[s] = computeat(Np, L, Linf, nsnap, datisnap.transpose(), poschO, posH1, posH2)
 
-        en_at[s], posatomic[s], em[s], endip[s] = computeaten(Np, L, Linf, nsnap, datisnap.transpose(), poschO, posH1, posH2)
+        en_at[s], posatomic[s], em[s], endip[s] = computeaten(Np, L, Linf, nsnap, datisnap.transpose(), posO, posH1, posH2)
 
     return ch_at, pos_at, en_at, em, posatomic
 
@@ -251,7 +251,7 @@ def computedipoletpdip(Np, L, Linf, nsnap, dati, posox):
     datisnap = np.zeros((Np, 8))
     nmol = int(Np / 3)
     cdmol, dip_mol, en_at, em, endip, poschO, posO, posH1, posH2, posatomic = initializetpdip(nsnap, Np)
-    g = open('file.out', '+w')
+    g = open('file.out', 'a')
     g.write('start compute dipoles\n')
     g.close()
     for s in range(nsnap):
@@ -261,7 +261,7 @@ def computedipoletpdip(Np, L, Linf, nsnap, dati, posox):
 
         dip_mol[s], cdmol[s] = computemol(Np, L, Linf, nsnap, datisnap.transpose(), poschO, posO, posH1, posH2)
 
-        en_at[s], posatomic[s], em[s], endip[s] = computeaten(Np, L, Linf, nsnap, datisnap.transpose(), poschO, posH1, posH2)
+        en_at[s], posatomic[s], em[s], endip[s] = computeaten(Np, L, Linf, nsnap, datisnap.transpose(), posO, posH1, posH2)
 
     return dip_mol, cdmol, endip
 
@@ -270,7 +270,7 @@ def computedipolecorren(Np, L, Linf, nsnap, dati, posox):
     datisnap = np.zeros((Np, 8))
     nmol = int(Np / 3)
     en_at, em, endip, poschO, posO, posH1, posH2, posatomic = initializecorren(nsnap, Np)
-    g = open('file.out', '+w')
+    g = open('file.out', 'a')
     g.write('start compute dipoles\n')
     g.close()
     for s in range(nsnap):
@@ -278,6 +278,6 @@ def computedipolecorren(Np, L, Linf, nsnap, dati, posox):
 
         poschO, posO, posH1, posH2 = computeposmol(Np, L, Linf, nsnap, datisnap.transpose(), posox)
 
-        en_at[s], posatomic[s], em[s], endip[s] = computeaten(Np, L, Linf, nsnap, datisnap.transpose(), poschO, posH1, posH2)
+        en_at[s], posatomic[s], em[s], endip[s] = computeaten(Np, L, Linf, nsnap, datisnap.transpose(), posO, posH1, posH2)
 
     return en_at, posatomic

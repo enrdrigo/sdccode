@@ -8,7 +8,7 @@ def getdatafromfile(filename, root, Np):
     with  open(root + filename, 'r') as f:
         line = f.readline()
         d = []
-        g = open('file.out', '+w')
+        g = open('file.out', 'a')
         g.write('start translation in bin\n')
         g.close()
         while (line != ''):
@@ -18,7 +18,7 @@ def getdatafromfile(filename, root, Np):
             dlist = [float(x.strip('\n')) for x in line.split(' ')]
             line = f.readline()
             d.append(dlist)
-        g = open('file.out', '+w')
+        g = open('file.out', 'a')
         g.write('done translation in bin\n')
         g.close()
 
@@ -61,5 +61,5 @@ def getBoxboundary(filename, root):
 
 def getNsnap(dati, Np):
     nsnap = int(len(dati) / Np)
-    print(nsnap)
+    print('number of snapshot in the trajectory: ', nsnap)
     return nsnap
