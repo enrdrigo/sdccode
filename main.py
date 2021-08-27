@@ -11,7 +11,7 @@ from modules import correlationfunction
 
 start = time.time()
 # INDICATES WHERE ARE THE DATA
-root = '../'
+root = '../dati10ns/'
 filename = 'dump1.1fs.lammpstrj'
 # GETS THE NUMBER OF PARTICLES IN THE SIMULATION
 Npart = initialize.getNpart(filename, root)
