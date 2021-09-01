@@ -28,7 +28,7 @@ def stdblock(array):
 
 
 root = '../'
-filename = 'dump1.05fs.lammpstrj'
+filename = 'dump1.1fs.lammpstrj'
 posox = 0.125
 L, Linf = initialize.getBoxboundary(filename, root)
 Npart = initialize.getNpart(filename, root)
@@ -88,16 +88,18 @@ cp = 18.0e-3
 fac = 4.186*rho*cp
 nltt = []
 sdd = []
+print('#{}'.format(1) + '% ', end='', flush=True)
+taumax = int(nsnap/10)
 
-for s in range(1, int(nsnap/10)):
+for s in range(1, taumax):
 
     nltts = np.zeros((int(nsnap/s), nk - 1))
     corr = np.zeros((nk, s), dtype=np.complex_)
     result = np.zeros(2 * s, dtype=np.complex_)
 
-    if s-1 % int(int(nsnap/10) / 10) == 0:
+    if s % int(taumax / 10) == 0:
 
-        print('#{}'.format(int((s-1) / int(nsnap/10) * 100) + 1) + '% ', end='', flush=True)
+        print('#{}'.format(int(s / taumax * 100)) + '% ', end='', flush=True)
 
     if int(nsnap/s) == told:
 
@@ -113,10 +115,10 @@ for s in range(1, int(nsnap/10)):
             v = [result[i] / (len(q[j, s*t:s*(t+1)])-abs(i - (len(q[j, s*t:s*(t+1)])) + 1)) for i in range(len(result))]
             corr[j] = np.array(v[int(result.size/2):])
 
-        ft = np.zeros((nk, int(s/8)+1), dtype=np.complex_)
+        ft = np.zeros((nk, int(s/5)+1), dtype=np.complex_)
         for i in range(nk):
 
-            ft[i] = fft(np.real(corr[i][:int(s/8)+1]))
+            ft[i] = fft(np.real(corr[i][: int(s/5)+1]))
 
         chi = np.var(q1[:, s*t:s*(t+1)], axis=1)
         for i in range(1, nk):
@@ -125,32 +127,45 @@ for s in range(1, int(nsnap/10)):
 
     nlttlist.append(nltts)
 
-    snltt = np.mean(nltts, axis=0)
-    nltt.append(snltt)
+    mnltt = np.mean(nltts, axis=0)
+
+    nltt.append(mnltt)
 
     ssdd = np.zeros(nk-1)
     for i in range(nk-1):
         var, xbin = stdblock(nltts[:, i])
+
         index = int(len(var)/4)
-        ssdd[i] = np.sqrt(np.mean(var[index: -index]))  # np.sqrt(np.var(nltts[:, i]) / int(nsnap / s))
+
+        ssdd[i] = np.sqrt(np.mean(var[index: -index-1]))  # np.sqrt(np.var(nltts[:, i]) / int(nsnap / s))
 
     sdd.append(ssdd)
 
     f.write('{}\t'.format(s))
-    f.write('{}\t'.format(snltt[0]) + '{}\t'.format(ssdd[0]))
-    f.write('{}\t'.format(snltt[1]) + '{}\t'.format(ssdd[1]))
-    f.write('{}\t'.format(snltt[2]) + '{}\t'.format(ssdd[2]))
-    f.write('{}\t'.format(snltt[3]) + '{}\n'.format(ssdd[3]))
+    f.write('{}\t'.format(mnltt[0]) + '{}\t'.format(ssdd[0]))
+    f.write('{}\t'.format(mnltt[1]) + '{}\t'.format(ssdd[1]))
+    f.write('{}\t'.format(mnltt[2]) + '{}\t'.format(ssdd[2]))
+    f.write('{}\t'.format(mnltt[3]) + '{}\n'.format(ssdd[3]))
 
 print('#100% ')
 print('Done')
 f.close()
 
+
+nlttmean=np.zeros((len(nltt), nk-1))
+
+for i in range(len(nltt)):
+    nlttmean[i]=nltt[i]
+
+
 with open('nlttk'+'{}'.format(Npart)+'.dat', 'w+') as f:
 
     for i in range(nk-1):
-        q=int(len(nltt)/2)
-        f.write('{}\t'.format((i+1)*2*np.pi/L)+'{}\t'.format(nltt[q][i])+'{}\n'.format(sdd[q][i]))
+        q = int(len(nltt)/2)
+
+        qq = int(len(nltt)/4)
+
+        f.write('{}\t'.format((i+1)*2*np.pi/L)+'{}\t'.format(np.mean(nlttmean[qq:-qq-1, i]))+'{}\n'.format(sdd[q][i]))
 
 nlttarray = np.array(nlttlist, dtype=object)
 
