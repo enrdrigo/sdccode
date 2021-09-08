@@ -275,8 +275,9 @@ def computestaticresponse(root, filename, Np, L, posox, nk, ntry, temp):
         std, bins = np.sqrt(stdblock((chk[i] / xk[i]) * np.conj(chk[i] / xk[i]) * face))
         vd[i] = std[pp]
     with open('staticresponse.out', '+w') as g:
-        g.write('# chtpc\t dipxxtpc\t dipyytpc\t chdiel\n')
+        g.write('#k\t chtpc\t dipxxtpc\t dipyytpc\t chdiel\n')
         for i in range(nk):
+            g.write('{}\t'.format(xk[i]))
             g.write('{}\t'.format(np.real(a[i])) + '{}\t'.format(np.real(va[i])))
             g.write('{}\t'.format(np.real(b[i])) + '{}\t'.format(np.real(vb[i])))
             g.write('{}\t'.format(np.real(c[i])) + '{}\t'.format(np.real(vc[i])))
