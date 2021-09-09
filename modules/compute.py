@@ -188,39 +188,87 @@ def computekft(root, filename, Np, L, posox, nk, ntry):
 
             enklist = [np.sum((en_at[:] - emp[:]) * np.exp(1j * posatomic[:, 0] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L), axis=0) for i in range(nk)]
 
-            dipenkxlist = [np.sum((endip[:,  0]) * np.exp(1j * cdmol[:, 0] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L), axis=0) for i in range(nk)]
+            enk.append(enklist)
 
-            dipenkylist = [np.sum((endip[:, 1]) * np.exp(1j * cdmol[:,  0] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L), axis=0) for i in range(nk)]
-
-            chklist = [np.sum((ch_at[:]) * np.exp(-1j * pos_at[:, 0] * 2 * (i + np.sqrt(3.) * 1.0e-5) * np.pi / L), axis=0) for i in range(nk)]
-
-            dipkxlist = [np.sum((dip_mol[:, 0]) * np.exp(1j * cdmol[:,  0] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L), axis=0) for i in range(nk)]
-
-            dipkylist = [np.sum((dip_mol[:, 1]) * np.exp(1j * cdmol[:, 0] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L), axis=0) for i in range(nk)]
+            enklist = [np.sum((en_at[:] - emp[:]) * np.exp(1j * posatomic[:, 1] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L), axis=0) for i in range(nk)]
 
             enk.append(enklist)
 
+            enklist = [np.sum((en_at[:] - emp[:]) * np.exp(1j * posatomic[:, 2] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L), axis=0) for i in range(nk)]
+
+            enk.append(enklist)
+
+            dipenkxlist = [np.sum((endip[:,  0]) * np.exp(1j * cdmol[:, 0] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L), axis=0) for i in range(nk)]
+
             dipenkx.append(dipenkxlist)
+
+            dipenkxlist = [np.sum((endip[:, 1]) * np.exp(1j * cdmol[:, 1] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L), axis=0) for i in range(nk)]
+
+            dipenkx.append(dipenkxlist)
+
+            dipenkxlist = [np.sum((endip[:, 2]) * np.exp(1j * cdmol[:, 2] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L), axis=0) for i in range(nk)]
+
+            dipenkx.append(dipenkxlist)
+
+            dipenkylist = [np.sum((endip[:, 1]) * np.exp(1j * cdmol[:,  0] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L), axis=0) for i in range(nk)]
 
             dipenky.append(dipenkylist)
 
+            dipenkylist = [np.sum((endip[:, 2]) * np.exp(1j * cdmol[:, 0] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L), axis=0) for i in range(nk)]
+
+            dipenky.append(dipenkylist)
+
+            dipenkylist = [np.sum((endip[:, 2]) * np.exp(1j * cdmol[:, 1] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L), axis=0) for i in range(nk)]
+
+            dipenky.append(dipenkylist)
+
+            chklist = [np.sum((ch_at[:]) * np.exp(-1j * pos_at[:, 0] * 2 * (i + np.sqrt(3.) * 1.0e-5) * np.pi / L), axis=0) for i in range(nk)]
+
             chk.append(chklist)
 
+            chklist = [np.sum((ch_at[:]) * np.exp(-1j * pos_at[:, 1] * 2 * (i + np.sqrt(3.) * 1.0e-5) * np.pi / L), axis=0) for i in range(nk)]
+
+            chk.append(chklist)
+
+            chklist = [np.sum((ch_at[:]) * np.exp(-1j * pos_at[:, 2] * 2 * (i + np.sqrt(3.) * 1.0e-5) * np.pi / L), axis=0) for i in range(nk)]
+
+            chk.append(chklist)
+
+            dipkxlist = [np.sum((dip_mol[:, 0]) * np.exp(1j * cdmol[:,  0] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L), axis=0) for i in range(nk)]
+
             dipkx.append(dipkxlist)
+
+            dipkxlist = [np.sum((dip_mol[:, 1]) * np.exp(1j * cdmol[:, 1] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L), axis=0) for i in range(nk)]
+
+            dipkx.append(dipkxlist)
+
+            dipkxlist = [np.sum((dip_mol[:, 2]) * np.exp(1j * cdmol[:, 2] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L), axis=0) for i in range(nk)]
+
+            dipkx.append(dipkxlist)
+
+            dipkylist = [np.sum((dip_mol[:, 1]) * np.exp(1j * cdmol[:, 0] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L), axis=0) for i in range(nk)]
+
+            dipky.append(dipkylist)
+
+            dipkylist = [np.sum((dip_mol[:, 2]) * np.exp(1j * cdmol[:, 0] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L), axis=0) for i in range(nk)]
+
+            dipky.append(dipkylist)
+
+            dipkylist = [np.sum((dip_mol[:, 2]) * np.exp(1j * cdmol[:, 1] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L), axis=0) for i in range(nk)]
 
             dipky.append(dipkylist)
 
             with open(root + 'output.out', 'a') as g:
                 if len(chk)%2000 == 0:
-                    print('got '+str(len(chk))+' snapshot')
-                    g.write('got '+str(len(chk))+' snapshot\n')
+                    print('got '+str(len(chk)/3)+' snapshot')
+                    g.write('got '+str(len(chk)/3)+' snapshot\n')
 
             if len(chk) == ntry:
                 return len(chk), np.transpose(np.array(enk)), np.transpose(np.array(dipenkx)), np.transpose(np.array(dipenky)), np.transpose(np.array(chk)), np.transpose(np.array(dipkx)), np.transpose(np.array(dipky))
         with open(root + 'output.out', 'a') as g:
-            print('number of total snapshots is', len(chk))
+            print('number of total snapshots is', len(chk)/3)
             print('done')
-            g.write('number of total snapshots is'+'{}\n'.format(len(chk)))
+            g.write('number of total snapshots is'+'{}\n'.format(len(chk)/3))
             g.write('done')
 
         np.save(root+'enk.npy', np.transpose(np.array(enk)))
@@ -229,14 +277,14 @@ def computekft(root, filename, Np, L, posox, nk, ntry):
         np.save(root+'chk.npy', np.transpose(np.array(chk)))
         np.save(root+'dipkx.npy', np.transpose(np.array(dipkx)))
         np.save(root+'dipky.npy', np.transpose(np.array(dipky)))
-        return len(chk), np.transpose(np.array(enk)), np.transpose(np.array(dipenkx)), np.transpose(np.array(dipenky)), np.transpose(np.array(chk)), np.transpose(np.array(dipkx)), np.transpose(np.array(dipky))
+        return len(chk)/3, np.transpose(np.array(enk)), np.transpose(np.array(dipenkx)), np.transpose(np.array(dipenky)), np.transpose(np.array(chk)), np.transpose(np.array(dipkx)), np.transpose(np.array(dipky))
 
 
 def stdblock(array):
     var = list()
     binsize = list()
     nbino = 0
-    for i in range(1, 500):
+    for i in range(1, int(len(array)/10)):
         nbin = int(len(array) / i)
         if nbin == nbino:
             continue
@@ -251,14 +299,15 @@ def stdblock(array):
 
 
 def computestaticresponse(root, filename, Np, L, posox, nk, ntry, temp):
-    if os.path.exists(root+'enk.npy'):
+    mantaindata = True
+    if os.path.exists(root+'enk.npy') and mantaindata:
         enk = np.load(root+'enk.npy')
         dipenkx = np.load(root + 'dipenkx.npy')
         dipenky = np.load(root + 'dipenky.npy')
         chk = np.load(root + 'chk.npy')
         dipkx = np.load(root + 'dipkx.npy')
         dipky = np.load(root + 'dipky.npy')
-        nsnap = np.shape(enk)[1]
+        nsnap = np.shape(enk)[1]/3
         with open(root + 'output.out', 'a') as g:
             print('number of total snapshots is', nsnap)
             print('done')
@@ -283,12 +332,12 @@ def computestaticresponse(root, filename, Np, L, posox, nk, ntry, temp):
     for i in range(nk):
         a[i] = np.mean((enk[i] / xk[i]) * np.conj(chk[i] / xk[i])) * fac
         b[i] = np.mean(dipenkx[i] * np.conj(dipkx[i])) * fac
-        c[i] = np.mean(dipenky[i] * np.conj(dipky[i])) * fac
+        c[i] = np.mean(dipenky[i] * np.conj(dipky[i] )) * fac
         d[i] = np.mean((chk[i] / xk[i]) * np.conj(chk[i] / xk[i])) * face
 
     for i in range(nk):
         std, bins = np.sqrt(stdblock((enk[i] / xk[i]) * np.conj(chk[i] / xk[i]) * fac))
-        pp = int(len(std) / 2)
+        pp = int(19*len(std) / 20)
         va[i] = std[pp]
         std, bins = np.sqrt(stdblock(dipenkx[i] * np.conj(dipkx[i]) * fac))
         vb[i] = std[pp]
