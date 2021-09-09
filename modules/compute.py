@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 
 # ----------------------------------------------------------------------------------------------------------------------
 # COMPUTES THE POSITION OF THE OXY AND OF THE TWO HYDROGENS AT GIVEN SNAPSHOT. IT ALSO GETS THE POSITION OF THE
@@ -221,6 +222,13 @@ def computekft(root, filename, Np, L, posox, nk, ntry):
             print('done')
             g.write('number of total snapshots is'+'{}\n'.format(len(chk)))
             g.write('done')
+
+        np.save(root+'enk.npy', np.transpose(np.array(enk)))
+        np.save(root+'dipenkx.npy', np.transpose(np.array(dipenkx)))
+        np.save(root+'dipenky.npy', np.transpose(np.array(dipenky)))
+        np.save(root+'chk.npy', np.transpose(np.array(chk)))
+        np.save(root+'dipkx.npy', np.transpose(np.array(dipkx)))
+        np.save(root+'dipky.npy', np.transpose(np.array(dipky)))
         return len(chk), np.transpose(np.array(enk)), np.transpose(np.array(dipenkx)), np.transpose(np.array(dipenky)), np.transpose(np.array(chk)), np.transpose(np.array(dipkx)), np.transpose(np.array(dipky))
 
 
@@ -243,7 +251,21 @@ def stdblock(array):
 
 
 def computestaticresponse(root, filename, Np, L, posox, nk, ntry, temp):
-    nsnap, enk, dipenkx, dipenky, chk, dipkx, dipky = computekft(root, filename, Np, L, posox, nk, ntry)
+    if os.path.exists(root+'enk.npy'):
+        enk = np.load(root+'enk.npy')
+        dipenkx = np.load(root + 'dipenkx.npy')
+        dipenky = np.load(root + 'dipenky.npy')
+        chk = np.load(root + 'chk.npy')
+        dipkx = np.load(root + 'dipkx.npy')
+        dipky = np.load(root + 'dipky.npy')
+        nsnap = np.shape(enk)[1]
+        with open(root + 'output.out', 'a') as g:
+            print('number of total snapshots is', nsnap)
+            print('done')
+            g.write('number of total snapshots is'+'{}\n'.format(nsnap))
+            g.write('done')
+    else:
+        nsnap, enk, dipenkx, dipenky, chk, dipkx, dipky = computekft(root, filename, Np, L, posox, nk, ntry)
 
     fac = (16.022 * 1.0e-30 * 4184 / 6.02214e23 * 1.0e-10 / (L ** 3 * 1.0e-30 * 1.38e-23 * temp * 8.854 * 1.0e-12))
     face = (16.022**2) * 1.0e5 / (L**3 * 1.38 * temp * 8.854)
@@ -274,7 +296,7 @@ def computestaticresponse(root, filename, Np, L, posox, nk, ntry, temp):
         vc[i] = std[pp]
         std, bins = np.sqrt(stdblock((chk[i] / xk[i]) * np.conj(chk[i] / xk[i]) * face))
         vd[i] = std[pp]
-    with open('staticresponse.out', '+w') as g:
+    with open(root+'staticresponse.out', '+w') as g:
         g.write('#k\t chtpc\t dipxxtpc\t dipyytpc\t chdiel\n')
         for i in range(nk):
             g.write('{}\t'.format(xk[i]))
@@ -288,14 +310,14 @@ def computestaticresponse(root, filename, Np, L, posox, nk, ntry, temp):
     plt.errorbar(xk[0:], b[0:], vb, fmt='.-', label=r'$\langle p_{energy_{x}}(k)p_{charge_{x}}(-k)\rangle$')
     plt.errorbar(xk[0:], c[0:], vc, fmt='.-', label=r'$\langle p_{energy_{y}}(k)p_{charge_{y}}(-k)\rangle$')
     plt.xlabel(r'k ($\AA^{-1}$)')
-    plt.ylabel(r'$\frac{E}{\triangledown (T)/T }$ (V)')
+    plt.ylabel(r'$\frac{P}{\epsilon_0\triangledown (T)/T }$ (V)')
     plt.legend()
     plt.show()
 
     fig, ax = plt.subplots(1, figsize=(8, 6), constrained_layout=True)
     plt.errorbar(xk[0:], d[0:], vd, fmt='.-', label=r'$\langle\frac{\rho(k)\rho(-k)}{k^2}\rangle$')
     plt.xlabel(r'k ($\AA^{-1}$)')
-    plt.ylabel(r'$\frac{E}{\triangledown (T)/T }$ (V)')
+    plt.ylabel(r'$\epsilon_r$')
     plt.legend()
     plt.show()
 
