@@ -1,7 +1,5 @@
 from modules import initialize
 from modules import compute
-import matplotlib.pyplot as plt
-import numpy as np
 
 root = './'
 filename = 'dump1.1fs.lammpstrj'
@@ -11,7 +9,7 @@ nkpoints = 10
 ntrysnap = -1
 inputcompute = initialize.getinitialize(filename, root, posox, nkpoints, ntrysnap)
 
-temp = 300
+temp = float(input('temperature:>'))
 
 staticresponse = compute.computestaticresponse(inputcompute['root'], inputcompute['filename'], inputcompute['N'], \
                                              inputcompute['size'], inputcompute['position of the ox'], \
