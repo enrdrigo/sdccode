@@ -7,7 +7,7 @@ filename = 'dump1.1fs.lammpstrj'
 fileinit = 'init.dat'
 
 posox = 0.125
-nkpoints = 10
+nkpoints = 40
 ntrysnap = -1
 if os.path.exists(root+filename):
     inputcompute = initialize.getinitialize(filename, root, posox, nkpoints, ntrysnap)
