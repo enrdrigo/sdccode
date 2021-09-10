@@ -300,6 +300,7 @@ def stdblock(array):
 
 def computestaticresponse(root, filename, Np, L, posox, nk, ntry, temp):
     mantaindata = True
+    plot = False
     if os.path.exists(root+'enk.npy') and mantaindata:
         enk = np.load(root+'enk.npy')
         dipenkx = np.load(root + 'dipenkx.npy')
@@ -339,6 +340,14 @@ def computestaticresponse(root, filename, Np, L, posox, nk, ntry, temp):
         d[i] = np.mean((chk[i] / xk[i]) * np.conj(chk[i] / xk[i])) * face
         e[i] = np.mean(dipkx[i] * np.conj(dipkx[i])) * face
 
+    convergence1 = 0
+    convergence2 = 0
+    with open('convergence.out', '+w') as g:
+        for i in range(len(enk[0])):
+            convergence1 = np.real(np.mean((enk[0][:i] / xk[0]) * np.conj(chk[0][:i] / xk[0])) * fac)
+            convergence2 = np.real((np.var(chk[0][:i] / xk[0])) * face)
+            g.write('{}\t'.format(i)+'{}\t'.format(convergence1)+'{}\n'.format(convergence2))
+
     for i in range(nk):
         std, bins = np.sqrt(stdblock((enk[i] / xk[i]) * np.conj(chk[i] / xk[i]) * fac))
         pp = int(19*len(std) / 20)
@@ -362,59 +371,62 @@ def computestaticresponse(root, filename, Np, L, posox, nk, ntry, temp):
             g.write('{} \t'.format(np.real(d[i])) + '{} \t'.format(np.real(vd[i])))
             g.write('{} \t'.format(np.real(e[i])) + '{} \n'.format(np.real(ve[i])))
 
-
-    fig, ax = plt.subplots(1, figsize=(8, 6), constrained_layout=True)
     v, x = stdblock((chk[0] / xk[0]) * np.conj(chk[0] / xk[0]) * face)
-    plt.plot(x, np.sqrt(v))
-    plt.ylabel(r'$\sigma_b$ of $\langle\frac{\rho(k_{min})\rho(-k_{min})}{k_{min}^2}\rangle$')
-    plt.xlabel('block size')
-    plt.show(block=False)
+    if plot:
+        fig, ax = plt.subplots(1, figsize=(8, 6), constrained_layout=True)
+        plt.plot(x, np.sqrt(v))
+        plt.ylabel(r'$\sigma_b$ of $\langle\frac{\rho(k_{min})\rho(-k_{min})}{k_{min}^2}\rangle$')
+        plt.xlabel('block size')
+        plt.show(block=False)
 
     with open(root + 'blockanalisisvardckmin.out', 'w+') as g:
         for i in range(len(v)):
             g.write('{}\t'.format(x[i]) + '{}\n'.format(np.sqrt(v[i])))
 
-    fig, ax = plt.subplots(1, figsize=(8, 6), constrained_layout=True)
     v, x = stdblock((enk[0] / xk[0]) * np.conj(chk[0] / xk[0]) * fac)
-    plt.plot(x, np.sqrt(v))
-    plt.ylabel(r'$\sigma_b$ of $\langle\frac{\rho(k_{min})\left(e(-k_{min})-e(0)\right)}{k_{min}^2}\rangle$')
-    plt.xlabel('block size')
-    plt.show(block=False)
+    if plot:
+        fig, ax = plt.subplots(1, figsize=(8, 6), constrained_layout=True)
+        plt.plot(x, np.sqrt(v))
+        plt.ylabel(r'$\sigma_b$ of $\langle\frac{\rho(k_{min})\left(e(-k_{min})-e(0)\right)}{k_{min}^2}\rangle$')
+        plt.xlabel('block size')
+        plt.show(block=False)
 
     with open(root + 'blockanalisisvartpckmin.out', 'w+') as g:
         for i in range(len(v)):
             g.write('{}\t'.format(x[i]) + '{}\n'.format(np.sqrt(v[i])))
 
-    fig, ax = plt.subplots(1, figsize=(8, 6), constrained_layout=True)
-    plt.errorbar(xk[0:], d[0:], vd, fmt='.-', label=r'$\langle\frac{\rho(k)\rho(-k)}{k^2}\rangle$')
-    plt.errorbar(xk[0:], e[0:], ve, fmt='.-', label=r'$\langle\frac{p_{charge_x}(k)p_{charge_x}(-k)}{k^2}\rangle$')
-    plt.xlabel(r'k ($\AA^{-1}$)')
-    plt.ylabel(r'$\epsilon_r$')
-    plt.legend()
-    plt.show(block=False)
+    if plot:
+        fig, ax = plt.subplots(1, figsize=(8, 6), constrained_layout=True)
+        plt.errorbar(xk[0:], d[0:], vd, fmt='.-', label=r'$\langle\frac{\rho(k)\rho(-k)}{k^2}\rangle$')
+        plt.errorbar(xk[0:], e[0:], ve, fmt='.-', label=r'$\langle\frac{p_{charge_x}(k)p_{charge_x}(-k)}{k^2}\rangle$')
+        plt.xlabel(r'k ($\AA^{-1}$)')
+        plt.ylabel(r'$\epsilon_r$')
+        plt.legend()
+        plt.show(block=False)
 
-    fig, ax = plt.subplots(1, figsize=(8, 6), constrained_layout=True)
-    plt.errorbar(xk[0:], a[0:], va, fmt='.-', label=r'$\langle\frac{\rho(k)\left(e(-k)-e(0)\right)}{k^2}\rangle$')
-    plt.errorbar(xk[0:], b[0:], vb, fmt='.-', label=r'$\langle p_{energy_{x}}(k)p_{charge_{x}}(-k)\rangle$')
-    plt.errorbar(xk[0:], c[0:], vc, fmt='.-', label=r'$\langle p_{energy_{y}}(k)p_{charge_{y}}(-k)\rangle$')
-    plt.xlabel(r'k ($\AA^{-1}$)')
-    plt.ylabel(r'$\frac{P}{\epsilon_0\triangledown (T)/T }$ (V)')
-    plt.legend()
-    plt.show(block=False)
+        fig, ax = plt.subplots(1, figsize=(8, 6), constrained_layout=True)
+        plt.errorbar(xk[0:], a[0:], va, fmt='.-', label=r'$\langle\frac{\rho(k)\left(e(-k)-e(0)\right)}{k^2}\rangle$')
+        plt.errorbar(xk[0:], b[0:], vb, fmt='.-', label=r'$\langle p_{energy_{x}}(k)p_{charge_{x}}(-k)\rangle$')
+        plt.errorbar(xk[0:], c[0:], vc, fmt='.-', label=r'$\langle p_{energy_{y}}(k)p_{charge_{y}}(-k)\rangle$')
+        plt.xlabel(r'k ($\AA^{-1}$)')
+        plt.ylabel(r'$\frac{P}{\epsilon_0\triangledown (T)/T }$ (V)')
+        plt.legend()
+        plt.show(block=False)
 
-    stdch = np.sqrt((va/d/temp)**2 + (a/d**2/temp*vd)**2)
+    stdch = np.real(np.sqrt((va/d/temp)**2 + (a/d**2/temp*vd)**2))
     tpcch = np.real(a/d/temp)
 
-    stddip = np.sqrt((vb/e/temp)**2 + (b/e**2/temp*ve)**2)
+    stddip = np.real(np.sqrt((vb/e/temp)**2 + (b/e**2/temp*ve)**2))
     tpcdip = np.real(b / e / temp)
 
-    fig, ax = plt.subplots(1, figsize=(8, 6), constrained_layout=True)
-    plt.errorbar(xk, tpcch, stdch, fmt='.-', label='computed via the charges')
-    plt.errorbar(xk, tpcdip, stddip, fmt='.-', label='computed via the dipoles')
-    plt.xlabel(r'k ($\AA^{-1}$)')
-    plt.ylabel(r'$\frac{E}{\triangledown (T) }$ (V/K)')
-    plt.legend()
-    plt.show(block=False)
+    if plot:
+        fig, ax = plt.subplots(1, figsize=(8, 6), constrained_layout=True)
+        plt.errorbar(xk, tpcch, stdch, fmt='.-', label='computed via the charges')
+        plt.errorbar(xk, tpcdip, stddip, fmt='.-', label='computed via the dipoles')
+        plt.xlabel(r'k ($\AA^{-1}$)')
+        plt.ylabel(r'$\frac{E}{\triangledown (T) }$ (V/K)')
+        plt.legend()
+        plt.show(block=False)
 
 
     with open(root+'thermopolarizationresponse.out', '+w') as g:
@@ -423,7 +435,8 @@ def computestaticresponse(root, filename, Np, L, posox, nk, ntry, temp):
             g.write('{}\t'.format(xk[i]))
             g.write('{}\t'.format(tpcch[i])+'{}\t'.format(stdch[i]))
             g.write('{}\t'.format(tpcdip[i])+'{}\n'.format(stddip[i]))
-    plt.show()
+    if plot:
+        plt.show()
 
     out = dict()
 
