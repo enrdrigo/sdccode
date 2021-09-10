@@ -377,12 +377,20 @@ def computestaticresponse(root, filename, Np, L, posox, nk, ntry, temp):
     plt.xlabel('block size')
     plt.show()
 
+    with open(root+'blockanalisisvartpckmin.out', 'w+') as g:
+        for i in range(len(v)):
+            g.write('{}\t'.format(x[i])+'{}\n'.format(np.sqrt(v[i])))
+
     fig, ax = plt.subplots(1, figsize=(8, 6), constrained_layout=True)
     v, x = stdblock((chk[0] / xk[0]) * np.conj(chk[0] / xk[0]) * face)
     plt.plot(x, np.sqrt(v))
     plt.ylabel(r'$\sigma_b$ of $\langle\frac{\rho(k_{min})\rho(-k_{min})}{k_{min}^2}\rangle$')
     plt.xlabel('block size')
     plt.show()
+
+    with open(root+'blockanalisisvardckmin.out', 'w+') as g:
+        for i in range(len(v)):
+            g.write('{}\t'.format(x[i])+'{}\n'.format(np.sqrt(v[i])))
 
     out = {}
 
@@ -394,7 +402,7 @@ def computestaticresponse(root, filename, Np, L, posox, nk, ntry, temp):
 
     out['thermopolarization']['charge'] = {'mean': a, 'std': va}
 
-    out['thermopolarization']['dipole']={}
+    out['thermopolarization']['dipole'] = {}
 
     out['thermopolarization']['dipole']['xx'] = {'mean': b, 'std': vb}
 
