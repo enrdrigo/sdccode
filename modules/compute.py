@@ -353,14 +353,45 @@ def computestaticresponse(root, filename, Np, L, posox, nk, ntry, temp):
         ve[i] = std[pp]
 
     with open(root+'staticresponse.out', '+w') as g:
-        g.write('#k\t chtpc\t dipxxtpc\t dipyytpc\t chdiel\n')
+        g.write('#k\t chtpc\t dipxxtpc\t dipyytpc\t chdiel\t dipxxdiel\n')
         for i in range(nk):
-            g.write('{}\t'.format(xk[i]))
-            g.write('{}\t'.format(np.real(a[i])) + '{}\t'.format(np.real(va[i])))
-            g.write('{}\t'.format(np.real(b[i])) + '{}\t'.format(np.real(vb[i])))
-            g.write('{}\t'.format(np.real(c[i])) + '{}\t'.format(np.real(vc[i])))
-            g.write('{}\t'.format(np.real(d[i])) + '{}\t'.format(np.real(vd[i])))
-            g.write('{}\t'.format(np.real(e[i])) + '{}\n'.format(np.real(ve[i])))
+            g.write('{} \t'.format(xk[i]))
+            g.write('{} \t'.format(np.real(a[i])) + '{} \t'.format(np.real(va[i])))
+            g.write('{} \t'.format(np.real(b[i])) + '{} \t'.format(np.real(vb[i])))
+            g.write('{} \t'.format(np.real(c[i])) + '{} \t'.format(np.real(vc[i])))
+            g.write('{} \t'.format(np.real(d[i])) + '{} \t'.format(np.real(vd[i])))
+            g.write('{} \t'.format(np.real(e[i])) + '{} \n'.format(np.real(ve[i])))
+
+
+    fig, ax = plt.subplots(1, figsize=(8, 6), constrained_layout=True)
+    v, x = stdblock((chk[0] / xk[0]) * np.conj(chk[0] / xk[0]) * face)
+    plt.plot(x, np.sqrt(v))
+    plt.ylabel(r'$\sigma_b$ of $\langle\frac{\rho(k_{min})\rho(-k_{min})}{k_{min}^2}\rangle$')
+    plt.xlabel('block size')
+    plt.show(block=False)
+
+    with open(root + 'blockanalisisvardckmin.out', 'w+') as g:
+        for i in range(len(v)):
+            g.write('{}\t'.format(x[i]) + '{}\n'.format(np.sqrt(v[i])))
+
+    fig, ax = plt.subplots(1, figsize=(8, 6), constrained_layout=True)
+    v, x = stdblock((enk[0] / xk[0]) * np.conj(chk[0] / xk[0]) * fac)
+    plt.plot(x, np.sqrt(v))
+    plt.ylabel(r'$\sigma_b$ of $\langle\frac{\rho(k_{min})\left(e(-k_{min})-e(0)\right)}{k_{min}^2}\rangle$')
+    plt.xlabel('block size')
+    plt.show(block=False)
+
+    with open(root + 'blockanalisisvartpckmin.out', 'w+') as g:
+        for i in range(len(v)):
+            g.write('{}\t'.format(x[i]) + '{}\n'.format(np.sqrt(v[i])))
+
+    fig, ax = plt.subplots(1, figsize=(8, 6), constrained_layout=True)
+    plt.errorbar(xk[0:], d[0:], vd, fmt='.-', label=r'$\langle\frac{\rho(k)\rho(-k)}{k^2}\rangle$')
+    plt.errorbar(xk[0:], e[0:], ve, fmt='.-', label=r'$\langle\frac{p_{charge_x}(k)p_{charge_x}(-k)}{k^2}\rangle$')
+    plt.xlabel(r'k ($\AA^{-1}$)')
+    plt.ylabel(r'$\epsilon_r$')
+    plt.legend()
+    plt.show(block=False)
 
     fig, ax = plt.subplots(1, figsize=(8, 6), constrained_layout=True)
     plt.errorbar(xk[0:], a[0:], va, fmt='.-', label=r'$\langle\frac{\rho(k)\left(e(-k)-e(0)\right)}{k^2}\rangle$')
@@ -369,36 +400,22 @@ def computestaticresponse(root, filename, Np, L, posox, nk, ntry, temp):
     plt.xlabel(r'k ($\AA^{-1}$)')
     plt.ylabel(r'$\frac{P}{\epsilon_0\triangledown (T)/T }$ (V)')
     plt.legend()
-    plt.show()
+    plt.show(block=False)
+
+    stdch = np.sqrt((va/d/temp)**2 + (a/d**2/temp*vd)**2)
+    tpcch = a/d/temp
+
+    stddip = np.sqrt((vb/e/temp)**2 + (b/e**2/temp*ve)**2)
+    tpcdip = b / e / temp
 
     fig, ax = plt.subplots(1, figsize=(8, 6), constrained_layout=True)
-    plt.errorbar(xk[0:], d[0:], vd, fmt='.-', label=r'$\langle\frac{\rho(k)\rho(-k)}{k^2}\rangle$')
+    plt.errorbar(xk, tpcch, stdch, fmt='.-', label='computed via the charges')
+    plt.errorbar(xk, tpcdip, stddip, fmt='.-', label='computed via the dipoles')
     plt.xlabel(r'k ($\AA^{-1}$)')
-    plt.ylabel(r'$\epsilon_r$')
+    plt.ylabel(r'$\frac{E}{\triangledown (T) }$ (V/K)')
     plt.legend()
+    plt.show(block=False)
     plt.show()
-
-    fig, ax = plt.subplots(1, figsize=(8, 6), constrained_layout=True)
-    v, x = stdblock((enk[0] / xk[0]) * np.conj(chk[0] / xk[0]) * fac)
-    plt.plot(x, np.sqrt(v))
-    plt.ylabel(r'$\sigma_b$ of $\langle\frac{\rho(k_{min})\left(e(-k_{min})-e(0)\right)}{k_{min}^2}\rangle$')
-    plt.xlabel('block size')
-    plt.show()
-
-    with open(root+'blockanalisisvartpckmin.out', 'w+') as g:
-        for i in range(len(v)):
-            g.write('{}\t'.format(x[i])+'{}\n'.format(np.sqrt(v[i])))
-
-    fig, ax = plt.subplots(1, figsize=(8, 6), constrained_layout=True)
-    v, x = stdblock((chk[0] / xk[0]) * np.conj(chk[0] / xk[0]) * face)
-    plt.plot(x, np.sqrt(v))
-    plt.ylabel(r'$\sigma_b$ of $\langle\frac{\rho(k_{min})\rho(-k_{min})}{k_{min}^2}\rangle$')
-    plt.xlabel('block size')
-    plt.show()
-
-    with open(root+'blockanalisisvardckmin.out', 'w+') as g:
-        for i in range(len(v)):
-            g.write('{}\t'.format(x[i])+'{}\n'.format(np.sqrt(v[i])))
 
     out = {}
 
