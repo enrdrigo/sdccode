@@ -403,10 +403,10 @@ def computestaticresponse(root, filename, Np, L, posox, nk, ntry, temp):
     plt.show(block=False)
 
     stdch = np.sqrt((va/d/temp)**2 + (a/d**2/temp*vd)**2)
-    tpcch = a/d/temp
+    tpcch = np.real(a/d/temp)
 
     stddip = np.sqrt((vb/e/temp)**2 + (b/e**2/temp*ve)**2)
-    tpcdip = b / e / temp
+    tpcdip = np.real(b / e / temp)
 
     fig, ax = plt.subplots(1, figsize=(8, 6), constrained_layout=True)
     plt.errorbar(xk, tpcch, stdch, fmt='.-', label='computed via the charges')
@@ -415,23 +415,31 @@ def computestaticresponse(root, filename, Np, L, posox, nk, ntry, temp):
     plt.ylabel(r'$\frac{E}{\triangledown (T) }$ (V/K)')
     plt.legend()
     plt.show(block=False)
+
+
+    with open(root+'thermopolarizationresponse.out', '+w') as g:
+        g.write('# k\t tpc via the charge \t tpc via the dipoles\n')
+        for i in range(nk):
+            g.write('{}\t'.format(xk[i]))
+            g.write('{}\t'.format(tpcch[i])+'{}\t'.format(stdch[i]))
+            g.write('{}\t'.format(tpcdip[i])+'{}\n'.format(stddip[i]))
     plt.show()
 
-    out = {}
+    out = dict()
 
-    out['dielectric'] = {}
+    out['dielectric'] = dict()
 
-    out['thermopolarization'] = {}
+    out['thermopolarization'] = dict()
 
     out['dielectric']['charge'] = {'mean': d, 'std': vd}
 
-    out['dielectric']['dipole'] = {}
+    out['dielectric']['dipole'] = dict()
 
     out['dielectric']['dipole']['xx'] = {'mean': e, 'std': ve}
 
     out['thermopolarization']['charge'] = {'mean': a, 'std': va}
 
-    out['thermopolarization']['dipole'] = {}
+    out['thermopolarization']['dipole'] = dict()
 
     out['thermopolarization']['dipole']['xx'] = {'mean': b, 'std': vb}
 
