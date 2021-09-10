@@ -198,63 +198,63 @@ def computekft(root, filename, Np, L, posox, nk, ntry):
 
             enk.append(enklist)
 
-            dipenkxlist = [np.sum((endip[:,  0]) * np.exp(1j * cdmol[:, 0] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L), axis=0) for i in range(nk)]
+            dipenkxlist = [np.sum((endip[:,  0]) * np.exp(1j * cdmol[:, 0] * 2 * -i * np.pi / L), axis=0) for i in range(nk)]
 
             dipenkx.append(dipenkxlist)
 
-            dipenkxlist = [np.sum((endip[:, 1]) * np.exp(1j * cdmol[:, 1] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L), axis=0) for i in range(nk)]
+            dipenkxlist = [np.sum((endip[:, 1]) * np.exp(1j * cdmol[:, 1] * 2 * -i * np.pi / L), axis=0) for i in range(nk)]
 
             dipenkx.append(dipenkxlist)
 
-            dipenkxlist = [np.sum((endip[:, 2]) * np.exp(1j * cdmol[:, 2] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L), axis=0) for i in range(nk)]
+            dipenkxlist = [np.sum((endip[:, 2]) * np.exp(1j * cdmol[:, 2] * 2 * -i * np.pi / L), axis=0) for i in range(nk)]
 
             dipenkx.append(dipenkxlist)
 
-            dipenkylist = [np.sum((endip[:, 1]) * np.exp(1j * cdmol[:,  0] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L), axis=0) for i in range(nk)]
+            dipenkylist = [np.sum((endip[:, 1]) * np.exp(1j * cdmol[:,  0] * 2 * -i * np.pi / L), axis=0) for i in range(nk)]
 
             dipenky.append(dipenkylist)
 
-            dipenkylist = [np.sum((endip[:, 2]) * np.exp(1j * cdmol[:, 0] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L), axis=0) for i in range(nk)]
+            dipenkylist = [np.sum((endip[:, 2]) * np.exp(1j * cdmol[:, 0] * 2 * -i * np.pi / L), axis=0) for i in range(nk)]
 
             dipenky.append(dipenkylist)
 
-            dipenkylist = [np.sum((endip[:, 2]) * np.exp(1j * cdmol[:, 1] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L), axis=0) for i in range(nk)]
+            dipenkylist = [np.sum((endip[:, 2]) * np.exp(1j * cdmol[:, 1] * 2 * -i * np.pi / L), axis=0) for i in range(nk)]
 
             dipenky.append(dipenkylist)
 
-            chklist = [np.sum((ch_at[:]) * np.exp(-1j * pos_at[:, 0] * 2 * (i + np.sqrt(3.) * 1.0e-5) * np.pi / L), axis=0) for i in range(nk)]
+            chklist = [np.sum((ch_at[:]) * np.exp(1j * pos_at[:, 0] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L), axis=0) for i in range(nk)]
 
             chk.append(chklist)
 
-            chklist = [np.sum((ch_at[:]) * np.exp(-1j * pos_at[:, 1] * 2 * (i + np.sqrt(3.) * 1.0e-5) * np.pi / L), axis=0) for i in range(nk)]
+            chklist = [np.sum((ch_at[:]) * np.exp(1j * pos_at[:, 1] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L), axis=0) for i in range(nk)]
 
             chk.append(chklist)
 
-            chklist = [np.sum((ch_at[:]) * np.exp(-1j * pos_at[:, 2] * 2 * (i + np.sqrt(3.) * 1.0e-5) * np.pi / L), axis=0) for i in range(nk)]
+            chklist = [np.sum((ch_at[:]) * np.exp(1j * pos_at[:, 2] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L), axis=0) for i in range(nk)]
 
             chk.append(chklist)
 
-            dipkxlist = [np.sum((dip_mol[:, 0]) * np.exp(1j * cdmol[:,  0] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L), axis=0) for i in range(nk)]
+            dipkxlist = [np.sum((dip_mol[:, 0]) * np.exp(1j * cdmol[:,  0] * 2 * -i * np.pi / L), axis=0) for i in range(nk)]
 
             dipkx.append(dipkxlist)
 
-            dipkxlist = [np.sum((dip_mol[:, 1]) * np.exp(1j * cdmol[:, 1] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L), axis=0) for i in range(nk)]
+            dipkxlist = [np.sum((dip_mol[:, 1]) * np.exp(1j * cdmol[:, 1] * 2 * -i * np.pi / L), axis=0) for i in range(nk)]
 
             dipkx.append(dipkxlist)
 
-            dipkxlist = [np.sum((dip_mol[:, 2]) * np.exp(1j * cdmol[:, 2] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L), axis=0) for i in range(nk)]
+            dipkxlist = [np.sum((dip_mol[:, 2]) * np.exp(1j * cdmol[:, 2] * 2 * -i * np.pi / L), axis=0) for i in range(nk)]
 
             dipkx.append(dipkxlist)
 
-            dipkylist = [np.sum((dip_mol[:, 1]) * np.exp(1j * cdmol[:, 0] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L), axis=0) for i in range(nk)]
+            dipkylist = [np.sum((dip_mol[:, 1]) * np.exp(1j * cdmol[:, 0] * 2 * -i * np.pi / L), axis=0) for i in range(nk)]
 
             dipky.append(dipkylist)
 
-            dipkylist = [np.sum((dip_mol[:, 2]) * np.exp(1j * cdmol[:, 0] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L), axis=0) for i in range(nk)]
+            dipkylist = [np.sum((dip_mol[:, 2]) * np.exp(1j * cdmol[:, 0] * 2 * -i * np.pi / L), axis=0) for i in range(nk)]
 
             dipky.append(dipkylist)
 
-            dipkylist = [np.sum((dip_mol[:, 2]) * np.exp(1j * cdmol[:, 1] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L), axis=0) for i in range(nk)]
+            dipkylist = [np.sum((dip_mol[:, 2]) * np.exp(1j * cdmol[:, 1] * 2 * -i * np.pi / L), axis=0) for i in range(nk)]
 
             dipky.append(dipkylist)
 
@@ -324,16 +324,20 @@ def computestaticresponse(root, filename, Np, L, posox, nk, ntry, temp):
     b = np.zeros(nk, np.complex_)
     c = np.zeros(nk, np.complex_)
     d = np.zeros(nk, np.complex_)
+    e = np.zeros(nk, np.complex_)
+
     va = np.zeros(nk)
     vb = np.zeros(nk)
     vc = np.zeros(nk)
     vd = np.zeros(nk)
+    ve = np.zeros(nk)
 
     for i in range(nk):
         a[i] = np.mean((enk[i] / xk[i]) * np.conj(chk[i] / xk[i])) * fac
         b[i] = np.mean(dipenkx[i] * np.conj(dipkx[i])) * fac
         c[i] = np.mean(dipenky[i] * np.conj(dipky[i] )) * fac
         d[i] = np.mean((chk[i] / xk[i]) * np.conj(chk[i] / xk[i])) * face
+        e[i] = np.mean(dipkx[i] * np.conj(dipkx[i])) * face
 
     for i in range(nk):
         std, bins = np.sqrt(stdblock((enk[i] / xk[i]) * np.conj(chk[i] / xk[i]) * fac))
@@ -345,6 +349,9 @@ def computestaticresponse(root, filename, Np, L, posox, nk, ntry, temp):
         vc[i] = std[pp]
         std, bins = np.sqrt(stdblock((chk[i] / xk[i]) * np.conj(chk[i] / xk[i]) * face))
         vd[i] = std[pp]
+        std, bins = np.sqrt(stdblock(dipkx[i] * np.conj(dipkx[i]) * face))
+        ve[i] = std[pp]
+
     with open(root+'staticresponse.out', '+w') as g:
         g.write('#k\t chtpc\t dipxxtpc\t dipyytpc\t chdiel\n')
         for i in range(nk):
@@ -352,7 +359,8 @@ def computestaticresponse(root, filename, Np, L, posox, nk, ntry, temp):
             g.write('{}\t'.format(np.real(a[i])) + '{}\t'.format(np.real(va[i])))
             g.write('{}\t'.format(np.real(b[i])) + '{}\t'.format(np.real(vb[i])))
             g.write('{}\t'.format(np.real(c[i])) + '{}\t'.format(np.real(vc[i])))
-            g.write('{}\t'.format(np.real(d[i])) + '{}\n'.format(np.real(vd[i])))
+            g.write('{}\t'.format(np.real(d[i])) + '{}\t'.format(np.real(vd[i])))
+            g.write('{}\t'.format(np.real(e[i])) + '{}\n'.format(np.real(ve[i])))
 
     fig, ax = plt.subplots(1, figsize=(8, 6), constrained_layout=True)
     plt.errorbar(xk[0:], a[0:], va, fmt='.-', label=r'$\langle\frac{\rho(k)\left(e(-k)-e(0)\right)}{k^2}\rangle$')
@@ -399,6 +407,10 @@ def computestaticresponse(root, filename, Np, L, posox, nk, ntry, temp):
     out['thermopolarization'] = {}
 
     out['dielectric']['charge'] = {'mean': d, 'std': vd}
+
+    out['dielectric']['dipole'] = {}
+
+    out['dielectric']['dipole']['xx'] = {'mean': e, 'std': ve}
 
     out['thermopolarization']['charge'] = {'mean': a, 'std': va}
 
