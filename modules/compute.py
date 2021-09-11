@@ -186,19 +186,19 @@ def computekft(root, filename, Np, L, posox, nk, ntry):
 
             emp = em/Np*np.ones(Np)
 
-            enklist = [np.sum((en_at[:] - emp[:]) * np.exp(1j * posatomic[:, 0] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L), axis=0) for i in range(nk)]
+            enklist = [np.sum((en_at[:] - emp[:]) * np.exp(1j * posatomic[:, 0] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L),axis=0) for i in range(nk)]
 
             enk.append(enklist)
 
-            enklist = [np.sum((en_at[:] - emp[:]) * np.exp(1j * posatomic[:, 1] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L), axis=0) for i in range(nk)]
+            enklist = [np.sum((en_at[:] - emp[:]) * np.exp(1j * posatomic[:, 1] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L),axis=0) for i in range(nk)]
 
             enk.append(enklist)
 
-            enklist = [np.sum((en_at[:] - emp[:]) * np.exp(1j * posatomic[:, 2] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L), axis=0) for i in range(nk)]
+            enklist = [np.sum((en_at[:] - emp[:]) * np.exp(1j * posatomic[:, 2] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L),axis=0) for i in range(nk)]
 
             enk.append(enklist)
 
-            dipenkxlist = [np.sum((endip[:,  0]) * np.exp(1j * cdmol[:, 0] * 2 * -i * np.pi / L), axis=0) for i in range(nk)]
+            dipenkxlist = [np.sum((endip[:, 0]) * np.exp(1j * cdmol[:, 0] * 2 * -i * np.pi / L), axis=0) for i in range(nk)]
 
             dipenkx.append(dipenkxlist)
 
@@ -210,7 +210,7 @@ def computekft(root, filename, Np, L, posox, nk, ntry):
 
             dipenkx.append(dipenkxlist)
 
-            dipenkylist = [np.sum((endip[:, 1]) * np.exp(1j * cdmol[:,  0] * 2 * -i * np.pi / L), axis=0) for i in range(nk)]
+            dipenkylist = [np.sum((endip[:, 1]) * np.exp(1j * cdmol[:, 0] * 2 * -i * np.pi / L), axis=0) for i in range(nk)]
 
             dipenky.append(dipenkylist)
 
@@ -234,7 +234,7 @@ def computekft(root, filename, Np, L, posox, nk, ntry):
 
             chk.append(chklist)
 
-            dipkxlist = [np.sum((dip_mol[:, 0]) * np.exp(1j * cdmol[:,  0] * 2 * -i * np.pi / L), axis=0) for i in range(nk)]
+            dipkxlist = [np.sum((dip_mol[:, 0]) * np.exp(1j * cdmol[:, 0] * 2 * -i * np.pi / L), axis=0) for i in range(nk)]
 
             dipkx.append(dipkxlist)
 
@@ -299,7 +299,7 @@ def stdblock(array):
 
 
 def computestaticresponse(root, filename, Np, L, posox, nk, ntry, temp):
-    mantaindata = True
+    mantaindata = False
     plot = False
     if os.path.exists(root+'enk.npy') and mantaindata:
         enk = np.load(root+'enk.npy')
@@ -334,6 +334,9 @@ def computestaticresponse(root, filename, Np, L, posox, nk, ntry, temp):
     ve = np.zeros(nk)
 
     for i in range(nk):
+        print(i, np.mean(enk[i]))
+
+    for i in range(nk):
         a[i] = np.mean((enk[i] / xk[i]) * np.conj(chk[i] / xk[i])) * fac
         b[i] = np.mean(dipenkx[i] * np.conj(dipkx[i])) * fac
         c[i] = np.mean(dipenky[i] * np.conj(dipky[i] )) * fac
@@ -342,8 +345,8 @@ def computestaticresponse(root, filename, Np, L, posox, nk, ntry, temp):
 
     convergence1 = 0
     convergence2 = 0
-    with open('convergence.out', '+w') as g:
-        for i in range(len(enk[0])):
+    with open(root+'convergence.out', '+w') as g:
+        for i in range(1, len(enk[0]), 10):
             convergence1 = np.real(np.mean((enk[0][:i] / xk[0]) * np.conj(chk[0][:i] / xk[0])) * fac)
             convergence2 = np.real((np.var(chk[0][:i] / xk[0])) * face)
             g.write('{}\t'.format(i)+'{}\t'.format(convergence1)+'{}\n'.format(convergence2))
