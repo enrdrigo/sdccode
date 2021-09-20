@@ -166,15 +166,16 @@ def computekft(root, filename, Np, L, posox, nk, ntry):
 
             d = []
             for p in range(Np+9):
-
-                if len(line.split(' ')) != 8:
+                if len(line.split(' ')) != 8 and len(line.split(' ')) != 9:
                     line = f.readline()
                     continue
-                dlist = [float(x.strip('\n')) for x in line.split(' ')]
+                dlist = [float(line.split(' ')[i]) for i in range(8)]
                 line = f.readline()
                 d.append(dlist)
 
             datisnap = np.array(d)
+
+            print(datisnap)
 
             poschO, posO, posH1, posH2 = computeposmol(Np, datisnap.transpose(), posox)
 
@@ -186,15 +187,15 @@ def computekft(root, filename, Np, L, posox, nk, ntry):
 
             emp = em/Np*np.ones(Np)
 
-            enklist = [np.sum((en_at[:] - emp[:]) * np.exp(1j * posatomic[:, 0] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L),axis=0) for i in range(nk)]
+            enklist = [np.sum((en_at[:]) * np.exp(1j * posatomic[:, 0] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L),axis=0) -em for i in range(nk)]
 
             enk.append(enklist)
 
-            enklist = [np.sum((en_at[:] - emp[:]) * np.exp(1j * posatomic[:, 1] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L),axis=0) for i in range(nk)]
+            enklist = [np.sum((en_at[:]) * np.exp(1j * posatomic[:, 1] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L),axis=0) -em for i in range(nk)]
 
             enk.append(enklist)
 
-            enklist = [np.sum((en_at[:] - emp[:]) * np.exp(1j * posatomic[:, 2] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L),axis=0) for i in range(nk)]
+            enklist = [np.sum((en_at[:]) * np.exp(1j * posatomic[:, 2] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L),axis=0) -em for i in range(nk)]
 
             enk.append(enklist)
 
@@ -270,7 +271,7 @@ def computekft(root, filename, Np, L, posox, nk, ntry):
             print('done')
             g.write('number of total snapshots is'+'{}\n'.format(len(chk)/3))
             g.write('done')
-
+        print('ok')
         np.save(root+'enk.npy', np.transpose(np.array(enk)))
         np.save(root+'dipenkx.npy', np.transpose(np.array(dipenkx)))
         np.save(root+'dipenky.npy', np.transpose(np.array(dipenky)))
@@ -332,9 +333,10 @@ def computestaticresponse(root, filename, Np, L, posox, nk, ntry, temp):
     vc = np.zeros(nk)
     vd = np.zeros(nk)
     ve = np.zeros(nk)
-
-    for i in range(nk):
-        print(i, np.mean(enk[i]))
+    
+    with open(root+'enk.out', '+w') as g:
+        for i in range(nk):
+            g.write('{}\t'.format(xk[i])+'{}\n'.format(np.abs(np.mean(enk[i]))))
 
     for i in range(nk):
         a[i] = np.mean((enk[i] / xk[i]) * np.conj(chk[i] / xk[i])) * fac
@@ -343,13 +345,18 @@ def computestaticresponse(root, filename, Np, L, posox, nk, ntry, temp):
         d[i] = np.mean((chk[i] / xk[i]) * np.conj(chk[i] / xk[i])) * face
         e[i] = np.mean(dipkx[i] * np.conj(dipkx[i])) * face
 
-    convergence1 = 0
-    convergence2 = 0
+    convergence1 = np.real((np.cumsum((enk[0][:] / xk[0]) * np.conj(chk[0][:] / xk[0])) * fac)/(np.cumsum((chk[0][:] / xk[0]) * np.conj(chk[0][:] / xk[0])) * face)/temp)
+    convergence2 = np.real((np.cumsum((enk[1][:] / xk[1]) * np.conj(chk[1][:] / xk[1])) * fac)/(np.cumsum((chk[1][:] / xk[1]) * np.conj(chk[1][:] / xk[1])) * face)/temp)
+    convergence3 = np.real((np.cumsum((enk[2][:] / xk[2]) * np.conj(chk[2][:] / xk[2])) * fac)/(np.cumsum((chk[2][:] / xk[2]) * np.conj(chk[2][:] / xk[2])) * face)/temp)
+    convergence4 = np.real((np.cumsum((enk[3][:] / xk[3]) * np.conj(chk[3][:] / xk[3])) * fac)/(np.cumsum((chk[3][:] / xk[3]) * np.conj(chk[3][:] / xk[3])) * face)/temp)
+    #  a/d/temp
     with open(root+'convergence.out', '+w') as g:
         for i in range(1, len(enk[0]), 10):
-            convergence1 = np.real(np.mean((enk[0][:i] / xk[0]) * np.conj(chk[0][:i] / xk[0])) * fac)
-            convergence2 = np.real((np.var(chk[0][:i] / xk[0])) * face)
-            g.write('{}\t'.format(i)+'{}\t'.format(convergence1)+'{}\n'.format(convergence2))
+            #convergence1 = np.real((np.mean((enk[0][:i] / xk[0]) * np.conj(chk[0][:i] / xk[0])) * fac)/(np.mean((chk[0][:i] / xk[0]) * np.conj(chk[0][:i] / xk[0])) * face)/temp)
+            #convergence3 = np.real((np.mean((enk[1][:i] / xk[1]) * np.conj(chk[1][:i] / xk[1])) * fac)/(np.mean((chk[1][:i] / xk[1]) * np.conj(chk[1][:i] / xk[1])) * face)/temp)
+            #convergence2 = np.real((np.mean((enk[2][:i] / xk[2]) * np.conj(chk[2][:i] / xk[2])) * fac)/(np.mean((chk[2][:i] / xk[2]) * np.conj(chk[2][:i] / xk[2])) * face)/temp)
+            #convergence4 = np.real((np.mean((enk[3][:i] / xk[3]) * np.conj(chk[3][:i] / xk[3])) * fac)/(np.mean((chk[3][:i] / xk[3]) * np.conj(chk[3][:i] / xk[3])) * face)/temp)
+            g.write('{}\t'.format(i)+'{}\t'.format(convergence1[i])+'{}\t'.format(convergence2[i])+'{}\t'.format(convergence3[i])+'{}\n'.format(convergence4[i]))
 
     for i in range(nk):
         std, bins = np.sqrt(stdblock((enk[i] / xk[i]) * np.conj(chk[i] / xk[i]) * fac))
