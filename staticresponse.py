@@ -3,7 +3,7 @@ from modules import compute
 import os
 
 root = './'
-filename = 'dump1.1fs.lammpstrj'
+filename = '../dump1.1fs.lammpstrj'
 fileinit = 'init.dat'
 
 posox = 0.125

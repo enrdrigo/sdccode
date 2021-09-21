@@ -1,6 +1,8 @@
 import numpy as np
+import pickle as pk
 import matplotlib.pyplot as plt
 import os
+import time
 
 # ----------------------------------------------------------------------------------------------------------------------
 # COMPUTES THE POSITION OF THE OXY AND OF THE TWO HYDROGENS AT GIVEN SNAPSHOT. IT ALSO GETS THE POSITION OF THE
@@ -151,6 +153,7 @@ def computeaten(Np, data_array, poschO, posH1, posH2):
 
 
 def computekft(root, filename, Np, L, posox, nk, ntry):
+    start=time.time()
     enk = []
     dipenkx = []
     dipenky = []
@@ -162,6 +165,27 @@ def computekft(root, filename, Np, L, posox, nk, ntry):
         g.write('start the computation of the fourier transform of the densities\n')
     with open(root+filename, 'r') as f:
         line = f.readline()
+
+        if os.path.exists(root + 'chk.pkl'):
+            with open(root + 'enk.pkl', 'rb') as g:
+                enk = pk.load(g)
+            with open(root + 'dipenkx.pkl', 'rb') as g:
+                dipenkx = pk.load(g)
+            with open(root + 'dipenky.pkl', 'rb') as g:
+                dipenky = pk.load(g)
+            with open(root + 'chk.pkl', 'rb') as g:
+                chk = pk.load(g)
+            with open(root + 'dipkx.pkl', 'rb') as g:
+                dipkx = pk.load(g)
+            with open(root + 'dipky.pkl', 'rb') as g:
+                dipky = pk.load(g)
+
+            lenght = int(len(enk) / 3)
+
+            print('THE LOADING WAS STOPPED AT THE SNAPSHOT: ', lenght)
+            for p in range((Np + 9) * lenght):
+                f.readline()
+
         while line != '':
 
             d = []
@@ -172,10 +196,39 @@ def computekft(root, filename, Np, L, posox, nk, ntry):
                 dlist = [float(line.split(' ')[i]) for i in range(8)]
                 line = f.readline()
                 d.append(dlist)
+            if len(d) == 0:
+
+                print('END READ FILE')
+                break
+            elif len(d) != Np:
+                print(len(d))
+                print('STOP: THE SNAPSHOT '+str(int(len(enk)/3)+1)+' DOES NOT HAVE ALL THE PARTICLES')
+                break
 
             datisnap = np.array(d)
 
-            print(datisnap)
+            if len(chk) == ntry * 3:
+                with open(root + 'enk.pkl', 'wb+') as g:
+                    pk.dump(enk, g)
+                with open(root + 'dipenkx.pkl', 'wb+') as g:
+                    pk.dump(dipenkx, g)
+                with open(root + 'dipenky.pkl', 'wb+') as g:
+                    pk.dump(dipenky, g)
+                with open(root + 'chk.pkl', 'wb+') as g:
+                    pk.dump(chk, g)
+                with open(root + 'dipkx.pkl', 'wb+') as g:
+                    pk.dump(dipkx, g)
+                with open(root + 'dipky.pkl', 'wb+') as g:
+                    pk.dump(dipky, g)
+                with open(root + 'output.out', 'a') as g:
+                    print('number of total snapshots is', len(chk) / 3)
+                    print('done')
+                    g.write('number of total snapshots is' + '{}\n'.format(len(chk) / 3))
+                    g.write('done')
+                print('END READ. NO MORE DATA TO LOAD. SEE NTRY')
+                return len(chk), np.transpose(np.array(enk)), np.transpose(np.array(dipenkx)), np.transpose(
+                    np.array(dipenky)), np.transpose(np.array(chk)), np.transpose(np.array(dipkx)), np.transpose(
+                    np.array(dipky))
 
             poschO, posO, posH1, posH2 = computeposmol(Np, datisnap.transpose(), posox)
 
@@ -187,15 +240,15 @@ def computekft(root, filename, Np, L, posox, nk, ntry):
 
             emp = em/Np*np.ones(Np)
 
-            enklist = [np.sum((en_at[:]) * np.exp(1j * posatomic[:, 0] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L),axis=0) -em for i in range(nk)]
+            enklist = [np.sum((en_at[:]- emp) * np.exp(1j * posatomic[:, 0] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L),axis=0) for i in range(nk)]
 
             enk.append(enklist)
 
-            enklist = [np.sum((en_at[:]) * np.exp(1j * posatomic[:, 1] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L),axis=0) -em for i in range(nk)]
+            enklist = [np.sum((en_at[:] - emp) * np.exp(1j * posatomic[:, 1] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L),axis=0) for i in range(nk)]
 
             enk.append(enklist)
 
-            enklist = [np.sum((en_at[:]) * np.exp(1j * posatomic[:, 2] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L),axis=0) -em for i in range(nk)]
+            enklist = [np.sum((en_at[:] - emp) * np.exp(1j * posatomic[:, 2] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L),axis=0) for i in range(nk)]
 
             enk.append(enklist)
 
@@ -259,19 +312,71 @@ def computekft(root, filename, Np, L, posox, nk, ntry):
 
             dipky.append(dipkylist)
 
-            with open(root + 'output.out', 'a') as g:
-                if len(chk)%2000 == 0:
-                    print('got '+str(len(chk)/3)+' snapshot')
-                    g.write('got '+str(len(chk)/3)+' snapshot\n')
 
-            if len(chk) == ntry:
+
+            with open(root + 'output.out', 'a') as z:
+                if int(len(chk)/3) % 5000 == 0:
+                    print('got '+str(len(chk)/3)+' snapshot')
+                    print('average elapsed time per snapshot', (time.time()-start)/(len(chk)/3))
+
+                    z.write('got '+str(len(chk)/3)+' snapshot\n')
+                    with open(root + 'enk.pkl', 'wb+') as g:
+                        pk.dump(enk, g)
+                    with open(root + 'dipenkx.pkl', 'wb+') as g:
+                        pk.dump(dipenkx, g)
+                    with open(root + 'dipenky.pkl', 'wb+') as g:
+                        pk.dump(dipenky, g)
+                    with open(root + 'chk.pkl', 'wb+') as g:
+                        pk.dump(chk, g)
+                    with open(root + 'dipkx.pkl', 'wb+') as g:
+                        pk.dump(dipkx, g)
+                    with open(root + 'dipky.pkl', 'wb+') as g:
+                        pk.dump(dipky, g)
+
+            if len(chk) == ntry*3:
+                with open(root + 'enk.pkl', 'wb+') as g:
+                    pk.dump(enk, g)
+                with open(root + 'dipenkx.pkl', 'wb+') as g:
+                    pk.dump(dipenkx, g)
+                with open(root + 'dipenky.pkl', 'wb+') as g:
+                    pk.dump(dipenky, g)
+                with open(root + 'chk.pkl', 'wb+') as g:
+                    pk.dump(chk, g)
+                with open(root + 'dipkx.pkl', 'wb+') as g:
+                    pk.dump(dipkx, g)
+                with open(root + 'dipky.pkl', 'wb+') as g:
+                    pk.dump(dipky, g)
+                with open(root + 'output.out', 'a') as g:
+                    print('number of total snapshots is', len(chk) / 3)
+                    print('done')
+                    print('elapsed time: ', time.time() - start)
+                    g.write('number of total snapshots is' + '{}\n'.format(len(chk) / 3))
+                    g.write('done')
+                print('END READ NTRY')
                 return len(chk), np.transpose(np.array(enk)), np.transpose(np.array(dipenkx)), np.transpose(np.array(dipenky)), np.transpose(np.array(chk)), np.transpose(np.array(dipkx)), np.transpose(np.array(dipky))
+
         with open(root + 'output.out', 'a') as g:
             print('number of total snapshots is', len(chk)/3)
             print('done')
+            print('elapsed time: ', time.time() - start)
             g.write('number of total snapshots is'+'{}\n'.format(len(chk)/3))
             g.write('done')
-        print('ok')
+
+
+        with open(root+'enk.pkl', 'wb+') as g:
+            pk.dump(enk, g)
+        with open(root+'dipenkx.pkl', 'wb+') as g:
+            pk.dump(dipenkx, g)
+        with open(root+'dipenky.pkl', 'wb+') as g:
+            pk.dump(dipenky, g)
+        with open(root+'chk.pkl', 'wb+') as g:
+            pk.dump(chk, g)
+        with open(root+'dipkx.pkl', 'wb+') as g:
+            pk.dump(dipkx, g)
+        with open(root+'dipky.pkl', 'wb+') as g:
+            pk.dump(dipky, g)
+        print('END READ FILE GOOD')
+
         np.save(root+'enk.npy', np.transpose(np.array(enk)))
         np.save(root+'dipenkx.npy', np.transpose(np.array(dipenkx)))
         np.save(root+'dipenky.npy', np.transpose(np.array(dipenky)))
