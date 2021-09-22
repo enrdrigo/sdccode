@@ -2,8 +2,8 @@ from modules import initialize
 from modules import compute
 import os
 
-root = './'
-filename = '../dump1.1fs.lammpstrj'
+root = '../../1500_mol/'
+filename = 'test.lammpstrj'
 fileinit = 'init.dat'
 
 posox = 0.125

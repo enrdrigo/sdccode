@@ -240,15 +240,15 @@ def computekft(root, filename, Np, L, posox, nk, ntry):
 
             emp = em/Np*np.ones(Np)
 
-            enklist = [np.sum((en_at[:]- emp) * np.exp(1j * posatomic[:, 0] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L),axis=0) for i in range(nk)]
+            enklist = [np.sum((en_at[:]- emp) * np.exp(1j * posatomic[:, 0] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L), axis=0) for i in range(nk)]
 
             enk.append(enklist)
 
-            enklist = [np.sum((en_at[:] - emp) * np.exp(1j * posatomic[:, 1] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L),axis=0) for i in range(nk)]
+            enklist = [np.sum((en_at[:] - emp) * np.exp(1j * posatomic[:, 1] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L), axis=0) for i in range(nk)]
 
             enk.append(enklist)
 
-            enklist = [np.sum((en_at[:] - emp) * np.exp(1j * posatomic[:, 2] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L),axis=0) for i in range(nk)]
+            enklist = [np.sum((en_at[:] - emp) * np.exp(1j * posatomic[:, 2] * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L), axis=0) for i in range(nk)]
 
             enk.append(enklist)
 

@@ -3,6 +3,7 @@ from modules import dipole
 import numpy as np
 from scipy import signal
 from scipy.fft import fft
+from modules import compute
 import matplotlib.pyplot as plt
 import os
 
@@ -27,7 +28,7 @@ def stdblock(array):
     return np.array(var), np.array(binsize)
 
 
-root = '../'
+root = './'
 filename = 'dump1.1fs.lammpstrj'
 posox = 0.125
 L, Linf = initialize.getBoxboundary(filename, root)
@@ -46,6 +47,7 @@ if os.path.exists(root+filebin):
 else:
 
     dati = initialize.getdatafromfile(filename, root, Npart)
+    np.save(root+filebin, dati)
 
 nsnap = initialize.getNsnap(dati, Npart)
 
@@ -67,9 +69,9 @@ for j in range(nsnap):
 
     datisnap = np.array(dati[j * Npart: (j + 1) * Npart])
 
-    poschO, posO, posH1, posH2 = dipole.computeposmol(Npart, L, Linf, nsnap, datisnap.transpose(), posox)
+    poschO, posO, posH1, posH2 = dipole.computeposmol(Npart, datisnap.transpose(), posox)
 
-    en_at, pos_at, em, endip = dipole.computeaten(Npart, L, Linf, nsnap, datisnap.transpose(), poschO, posH1, posH2)
+    en_at, pos_at, em, endip = dipole.computeaten(Npart, datisnap.transpose(), poschO, posH1, posH2)
 
     for i in range(nk):
 
@@ -80,32 +82,44 @@ print('fine calcolo dipolo')
 qm = np.sum(q1, axis=1)/nsnap
 q = np.transpose(np.transpose(q1)-qm)
 f = open('nltt'+'{}'.format(Npart)+'.dat', 'w+')
+timestep = float(input('timestep:\n'))
+dumpstep = float(input('dumpstep:\n'))
+dt = timestep*dumpstep
 print('inizio calcolo non local thermal conductivity:')
 told = 0
 nlttlist = []
-rho = Npart/(6.022e23 * L ** 3 * 1.e-30)
-cp = 18.0e-3
-fac = 4.186*rho*cp
+rho = Npart/(6.022e23 * L ** 3 * 1.e-30)  # mol/m^3
+cp = 18.0e-3  # Kcal/mol*k
+fac = 4186*rho*cp  # J/k/m^3
 nltt = []
 sdd = []
 print('#{}'.format(1) + '% ', end='', flush=True)
-taumax = int(nsnap/10)
+taumax = int(nsnap/2)
 
-for s in range(1, taumax):
+tmax = 400
 
-    nltts = np.zeros((int(nsnap/s), nk - 1))
+sl = []
+
+nl0 = []
+
+sl0 = []
+
+for s in range(tmax*2, taumax):
+
     corr = np.zeros((nk, s), dtype=np.complex_)
     result = np.zeros(2 * s, dtype=np.complex_)
 
-    if s % int(taumax / 10) == 0:
+    if (s - tmax*2 + 1) % int((taumax - tmax*2) / 10) == 0:
 
-        print('#{}'.format(int(s / taumax * 100)) + '% ', end='', flush=True)
+        print('#{}'.format(int((s - tmax*2 + 1) / (taumax - tmax*2) * 100)) + '% ', end='', flush=True)
 
     if int(nsnap/s) == told:
 
         continue
 
     told = int(nsnap/s)
+
+    nltts = np.zeros((int(nsnap / s), nk - 1))
 
     for t in range(int(nsnap/s)):
 
@@ -115,15 +129,16 @@ for s in range(1, taumax):
             v = [result[i] / (len(q[j, s*t:s*(t+1)])-abs(i - (len(q[j, s*t:s*(t+1)])) + 1)) for i in range(len(result))]
             corr[j] = np.array(v[int(result.size/2):])
 
-        ft = np.zeros((nk, int(s/5)+1), dtype=np.complex_)
+
+        ft = np.zeros(nk, dtype=np.complex_)
         for i in range(nk):
 
-            ft[i] = fft(np.real(corr[i][: int(s/5)+1]))
+            ft[i] = np.sum(corr[i, :min(int(s/2), tmax)+1]) * dt   # fft(np.real(corrnew[i][: int(int(s/av)/5)+1])) * dt * av # (Kcal*m)**2 * fs
 
-        chi = np.var(q1[:, s*t:s*(t+1)], axis=1)
+        chi = np.var(q1[:, :], axis=1)  # (Kcal*m)**2
         for i in range(1, nk):
 
-            nltts[t, i-1] = np.real(chi[i]/(ft[i, 0]*(2*i*np.pi/L)**2)*1.e-5*fac)
+            nltts[t, i-1] = np.real(chi[i]/(ft[i, 0]*(2*i*np.pi/L)**2)*fac) *(1e-10)**2/1e-15  # m^2/s * J/k*m^3 = J/s /m
 
     nlttlist.append(nltts)
 
@@ -141,6 +156,12 @@ for s in range(1, taumax):
 
     sdd.append(ssdd)
 
+    sl.append(s)
+
+    nl0.append(mnltt[0])
+
+    sl0.append(ssdd[0])
+
     f.write('{}\t'.format(s))
     f.write('{}\t'.format(mnltt[0]) + '{}\t'.format(ssdd[0]))
     f.write('{}\t'.format(mnltt[1]) + '{}\t'.format(ssdd[1]))
@@ -152,32 +173,51 @@ print('Done')
 f.close()
 
 
-nlttmean=np.zeros((len(nltt), nk-1))
+nlttmean = np.zeros((len(nltt), nk-1))
 
 for i in range(len(nltt)):
-    nlttmean[i]=nltt[i]
+    nlttmean[i] = nltt[i]
 
+sdd = np.array(sdd)
+
+print(len(nlttmean[:, 6]), len(sdd[:, 6]))
 
 with open('nlttk'+'{}'.format(Npart)+'.dat', 'w+') as f:
 
+    xk = []
+
+    nlk = []
+
+    slk = []
+
     for i in range(nk-1):
-        q = int(len(nltt)/2)
+        p = int(len(nltt)/2)
 
-        qq = int(len(nltt)/4)
+        pp = int(len(nltt)/4)
 
-        f.write('{}\t'.format((i+1)*2*np.pi/L)+'{}\t'.format(np.mean(nlttmean[qq:-qq-1, i]))+'{}\n'.format(sdd[q][i]))
+        var = stdblock(nlttmean[pp:, i])[0]
+
+        std2mean = np.mean(sdd[pp:][i]**2)/len(sdd[pp:][i]) + var[-2]
+
+        f.write('{}\t'.format((i+1)*2*np.pi/L)+'{}\t'.format(np.mean(nlttmean[p:, i]))+'{}\n'.format(np.mean(sdd[p:, i])))
+
+        xk.append((i+1)*2*np.pi/L)
+
+        nlk.append(np.mean(nlttmean[p:, i]))
+
+        slk.append(np.mean(sdd[p:, i]))
 
 nlttarray = np.array(nlttlist, dtype=object)
 
-for i in range(65, 70):
 
-    var, xbin = stdblock(nlttarray[i][:, 0])
-
-    plt.plot(xbin, np.sqrt(var), label='{}'.format(i))
+plt.errorbar(sl, nl0, sl0)
 
 plt.xlabel('bin lenght')
-plt.ylabel(r'$\sigma_b$')
-plt.legend()
+plt.ylabel(r'non local coeff')
 plt.show()
+plt.errorbar(xk, nlk, slk)
 
+plt.xlabel('k')
+plt.ylabel(r'non local coeff')
+plt.show()
 
