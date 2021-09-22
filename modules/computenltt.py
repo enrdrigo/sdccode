@@ -56,15 +56,15 @@ def computenltt(root, filename, Np, L, posox, nk, ntry, temp):
 
     dt = 0.5 * tdump  # fs
 
-    corr = np.zeros((nblocks, tblock), dtype=np.complex_)
+    corr = np.zeros((nblocks, tinblock), dtype=np.complex_)
 
     chi = np.var(enk[:, :], axis=1)  # (Kcal*m)**2
 
     nk = 10
 
-    corren = np.zeros((nblocks, nk - 1, int(tblock / 2) + 1), dtype=np.complex_)
+    corren = np.zeros((nblocks, nk - 1, int(tinblock / 2) + 1), dtype=np.complex_)
 
-    ft = np.zeros((nk - 1, int(tblock / 2) + 1), dtype=np.complex_)
+    ft = np.zeros((nk - 1, int(tinblock / 2) + 1), dtype=np.complex_)
 
     for t in range(nblocks):
 
@@ -73,13 +73,13 @@ def computenltt(root, filename, Np, L, posox, nk, ntry, temp):
         for j in range(1, nk):
 
             for i in range(0, tinblock, int(tinblock / 100)):
-                corr[t] += np.array(autocorr(enkcorr[j, (tblock * t):(tblock * (t + 1)), 0])) / 100 / 3
-                corr[t] += np.array(autocorr(enkcorr[j, (tblock * t):(tblock * (t + 1)), 1])) / 100 / 3
-                corr[t] += np.array(autocorr(enkcorr[j, (tblock * t):(tblock * (t + 1)), 2])) / 100 / 3
+                corr[t] += np.array(autocorr(enkcorr[j, (tblock * t + i):(tblock * t + tinblock + i), 0])) / 100 / 3
+                corr[t] += np.array(autocorr(enkcorr[j, (tblock * t + i):(tblock * t + tinblock + i), 1])) / 100 / 3
+                corr[t] += np.array(autocorr(enkcorr[j, (tblock * t + i):(tblock * t + tinblock + i), 2])) / 100 / 3
 
             chik = (np.var(enkcorr[j, :, 0]) + np.var(enkcorr[j, :, 1]) + np.var(enkcorr[j, :, 2])) / 3
 
-            ft[j - 1] = chik / (np.cumsum(corr[t, :int(tblock / 2) + 1]) * (2 * (j) * np.pi / L) ** 2) * (
+            ft[j - 1] = chik / (np.cumsum(corr[t, :int(tinblock / 2) + 1]) * (2 * (j) * np.pi / L) ** 2) * (
                         fac / dt * (1e-10) ** 2 / 1e-15)
 
         corren[t] = ft
