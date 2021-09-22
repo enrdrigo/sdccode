@@ -405,7 +405,7 @@ def stdblock(array):
 
 
 def computestaticresponse(root, filename, Np, L, posox, nk, ntry, temp):
-    mantaindata = False
+    mantaindata = True
     plot = False
     if os.path.exists(root+'enk.npy') and mantaindata:
         enk = np.load(root+'enk.npy')
