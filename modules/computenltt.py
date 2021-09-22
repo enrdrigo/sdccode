@@ -11,7 +11,7 @@ import os
 def autocorr(x):
     result = signal.correlate(x, x, mode='full', method='fft')
     v = [result[i] / (len(x) - abs(i - (len(x)) + 1)) for i in range(len(result))]
-    return v[int(result.size / 2):]
+    return np.array(v[int(result.size / 2):])
 
 
 def computenltt(root, filename, Np, L, posox, nk, ntry, temp):
@@ -34,13 +34,15 @@ def computenltt(root, filename, Np, L, posox, nk, ntry, temp):
     else:
         nsnap, enk, dipenkx, dipenky, chk, dipkx, dipky = compute.computekft(root, filename, Np, L, posox, nk, ntry)
 
+    ndata = int(enk.shape[1])
+
+    enkcorr = np.reshape(enk, (nk, int(ndata / 3), 3))
+
     nblocks = 10
 
-    tblock = int(enk.shape[1] / nblocks)
+    tblock = int(enkcorr.shape[1] / nblocks)
 
     tinblock = int(tblock / 2)
-
-    print(tinblock)
 
     rho = Np / (6.022e23 * L ** 3 * 1.e-30)  # mol/m^3
 
@@ -54,35 +56,32 @@ def computenltt(root, filename, Np, L, posox, nk, ntry, temp):
 
     dt = 0.5 * tdump  # fs
 
-    corr = np.zeros((nblocks, tinblock), dtype=np.complex_)
+    corr = np.zeros((nblocks, tblock), dtype=np.complex_)
 
     chi = np.var(enk[:, :], axis=1)  # (Kcal*m)**2
 
     nk = 10
 
-    corren = np.zeros((nblocks, nk - 1, int(tinblock / 2) + 1), dtype=np.complex_)
+    corren = np.zeros((nblocks, nk - 1, int(tblock / 2) + 1), dtype=np.complex_)
 
-    ft = np.zeros((nk - 1, int(tinblock / 2) + 1), dtype=np.complex_)
+    ft = np.zeros((nk - 1, int(tblock / 2) + 1), dtype=np.complex_)
 
     for t in range(nblocks):
 
         print(t)
 
-        for j in range(nk - 1):
+        for j in range(1, nk):
 
             for i in range(0, tinblock, int(tinblock / 100)):
-                corr[t] += np.array(autocorr(enk[j + 1, (tblock * t) + i:(tblock * (t) + tinblock + i)])) / 100
+                corr[t] += np.array(autocorr(enkcorr[j, (tblock * t):(tblock * (t + 1)), 0])) / 100 / 3
+                corr[t] += np.array(autocorr(enkcorr[j, (tblock * t):(tblock * (t + 1)), 1])) / 100 / 3
+                corr[t] += np.array(autocorr(enkcorr[j, (tblock * t):(tblock * (t + 1)), 2])) / 100 / 3
 
-            # print(corr[t][0] - np.abs(np.mean(enk[j+1, (tblock * t):(tblock * (t +1))]))**2, np.var(enk[j+1, (tblock * t):(tblock * (t +1))]))
+            chik = (np.var(enkcorr[j, :, 0]) + np.var(enkcorr[j, :, 1]) + np.var(enkcorr[j, :, 2])) / 3
 
-            chik = np.var(enk[j + 1, :])
-
-            ft[j] = chik / (np.cumsum(corr[t, :int(tinblock / 2) + 1]) * (2 * (j + 1) * np.pi / L) ** 2) * (
+            ft[j - 1] = chik / (np.cumsum(corr[t, :int(tblock / 2) + 1]) * (2 * (j) * np.pi / L) ** 2) * (
                         fac / dt * (1e-10) ** 2 / 1e-15)
 
-            # print(chi[j+1]/(np.cumsum(corr[t, :int(tinblock/2) + 1])[-1] *(2*(j+1)*np.pi/L)**2)*(fac/dt*(1e-10)**2/1e-15))
-
         corren[t] = ft
-
     return corren
 
