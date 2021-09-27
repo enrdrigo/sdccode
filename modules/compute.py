@@ -9,37 +9,51 @@ import time
 # FOURTH PARTICLE IN THE TIP4P/2005 MODEL OF WATER WHERE THERE IS THE CHARGE OF THE OXY (SEE TIP4P/2005 MODEL OF WATER).
 
 
-def computeposmol(Np, data_array, posox):
-    nmol = int(Np / 3)
-    datamol = np.zeros((8, nmol, 3))
-    datamol = data_array.reshape((8, nmol, 3))
+def computeposmol(Np, data_array, posox, natpermol):
+    nmol = int(Np / natpermol)
+    datamol = np.zeros((8, nmol, natpermol))
+    datamol = data_array.reshape((8, nmol, natpermol))
 
     #
+    pos = np.zeros((natpermol, 3, nmol))
     posO = np.zeros((3, nmol))
     posH1 = np.zeros((3, nmol))
     posH2 = np.zeros((3, nmol))
-    posO[0] = np.transpose(datamol[2])[0]
-    posO[1] = np.transpose(datamol[3])[0]
-    posO[2] = np.transpose(datamol[4])[0]
-    posH1[0] = np.transpose(datamol[2])[1]
-    posH1[1] = np.transpose(datamol[3])[1]
-    posH1[2] = np.transpose(datamol[4])[1]
-    posH2[0] = np.transpose(datamol[2])[2]
-    posH2[1] = np.transpose(datamol[3])[2]
-    posH2[2] = np.transpose(datamol[4])[2]
+    for i in range(natpermol):
+        pos[i][0] = np.transpose(datamol[2])[i]
+        pos[i][1] = np.transpose(datamol[3])[i]
+        pos[i][2] = np.transpose(datamol[4])[i]
+        #posH1[0] = np.transpose(datamol[2])[1]
+        #posH1[1] = np.transpose(datamol[3])[1]
+        #posH1[2] = np.transpose(datamol[4])[1]
+        #posH2[0] = np.transpose(datamol[2])[2]
+        #posH2[1] = np.transpose(datamol[3])[2]
+        #posH2[2] = np.transpose(datamol[4])[2]
+
+    posO=pos[0]
+    posH1=pos[1]
+    posH2=pos[2]
     #
 
-    #
-    bisdir = np.zeros((3, nmol))
-    bisdir = 2 * posO - posH1 - posH2
-    #
 
-    #
-    poschO = np.zeros((3, nmol))
-    poschO = posO - posox * bisdir / np.sqrt(bisdir[0] ** 2 + bisdir[1] ** 2 + bisdir[2] ** 2)
-    #
+    if natpermol != 1:
+        #
+        bisdir = np.zeros((3, nmol))
+        bisdir = 2 * pos[0] - pos[1] - pos[2]
 
-    return poschO, posO, posH1, posH2
+        #
+
+        #
+        poschO = np.zeros((3, nmol))
+        poschO = posO - posox * bisdir / np.sqrt(bisdir[0] ** 2 + bisdir[1] ** 2 + bisdir[2] ** 2)
+
+        #
+    else:
+        poschO = np.zeros((3, nmol))
+        poschO = pos[0]
+
+
+    return poschO, pos
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -47,29 +61,38 @@ def computeposmol(Np, data_array, posox):
 # DIPOLE WE MUST REMEMBER THAT THE OXY CHARGE IS NOT LOCATED IN THE OXY POSITION (SEE TIP4P/2005 MODEL OF WATER).
 
 
-def computemol(Np, data_array, poschO, posO, posH1, posH2):
-    nmol = int(Np / 3)
-    datamol = np.zeros((8, nmol, 3))
-    datamol = data_array.reshape((8, nmol, 3))
+def computemol(Np, data_array, poschO, pos):
+    natpermol = np.shape(pos)[0]
+    nmol = int(Np / natpermol)
+    datamol = np.zeros((8, nmol, natpermol))
+    datamol = data_array.reshape((8, nmol, natpermol))
     #
 
     #
     chO = np.zeros(nmol)
     chH1 = np.zeros(nmol)
     chH2 = np.zeros(nmol)
-    chO = np.transpose(datamol[5])[0]
-    chH1 = np.transpose(data_array[5])[1]
-    chH2 = np.transpose(data_array[5])[2]
+    ch = np.zeros((natpermol, nmol))
+    for i  in range(natpermol):
+        ch[i] = np.transpose(datamol[5])[i]
+
+
+    chH1 = ch[1]  # np.transpose(data_array[5])[1]
+    chH2 = ch[2]  # np.transpose(data_array[5])[2]
     #
 
     #
+    mass = [15.9994, 1.008, 1.008]
     cdmmol = np.zeros((3, nmol))
-    cdmmol = (posO * 15.9994 + (posH1 + posH2) * 1.008) / (15.9994 + 2 * 1.008)
+    for i in range(natpermol):
+        cdmmol += pos[i]*mass[i]/sum(mass)
     #
 
     #
     pos_mch = np.zeros((3, nmol))
-    pos_mch = poschO * chO + posH1 * chH1 + posH2 * chH2
+    pos_mch = poschO * ch[0]
+    for i in range(natpermol-1):
+        pos_mch += pos[i+1]*ch[i+1]
     #
 
     #
@@ -85,8 +108,9 @@ def computemol(Np, data_array, poschO, posO, posH1, posH2):
 # TO THE TIP4P/2005 MODEL OF WATER.
 
 
-def computeat(Np, data_array, poschO, posH1, posH2):
-    nmol = int(Np / 3)
+def computeat(Np, data_array, poschO, pos):
+    natpermol = np.shape(pos)[0]
+    nmol = int(Np / natpermol)
 
     #
     chat = np.zeros(Np)
@@ -96,8 +120,9 @@ def computeat(Np, data_array, poschO, posH1, posH2):
     #
     posm = np.zeros((3, nmol, 3))
     posm[0] = np.transpose(poschO)
-    posm[1] = np.transpose(posH1)
-    posm[2] = np.transpose(posH2)
+    for i in range(1, natpermol):
+        posm[i] = np.transpose(pos[i])
+        #posm[2] = np.transpose(posH2)
     #
 
     #
@@ -116,18 +141,21 @@ def computeat(Np, data_array, poschO, posH1, posH2):
     return ch_at, np.transpose(pos_at)
 
 
-def computeaten(Np, data_array, poschO, posH1, posH2):
-    nmol = int(Np / 3)
+def computeaten(Np, data_array, pos):
+    natpermol = np.shape(pos)[0]
+    nmol = int(Np / natpermol)
     #
-    datamol = np.zeros((8, nmol, 3))
-    datamol = data_array.reshape((8, nmol, 3))
+    datamol = np.zeros((8, nmol, natpermol))
+    datamol = data_array.reshape((8, nmol, natpermol))
     #
     en0 = np.zeros(nmol)
     enH1 = np.zeros(nmol)
     enH2 = np.zeros(nmol)
-    enO = np.transpose(datamol[6])[0] + np.transpose(datamol[7])[0]
-    enH1 = np.transpose(datamol[6])[1] + np.transpose(datamol[7])[1]
-    enH2 = np.transpose(datamol[6])[2] + np.transpose(datamol[7])[2]
+    en = np.zeros((3, nmol))
+    for i in range(natpermol):
+        en[i] = np.transpose(datamol[6])[i] + np.transpose(datamol[7])[i]
+        #enH1 = np.transpose(datamol[6])[1] + np.transpose(datamol[7])[1]
+        #enH2 = np.transpose(datamol[6])[2] + np.transpose(datamol[7])[2]
 
     #
     enat = np.zeros(Np)
@@ -147,12 +175,13 @@ def computeaten(Np, data_array, poschO, posH1, posH2):
     #
 
     endip = np.zeros((3, nmol))
-    endip = poschO*(enO-np.sum(enat)/Np) + posH1*(enH1-np.sum(enat)/Np) + posH2*(enH2-np.sum(enat)/Np)
+    for i in range(natpermol):
+        endip += pos[i]*(en[i]-np.sum(enat)/Np)#poschO*(enO-np.sum(enat)/Np) + posH1*(enH1-np.sum(enat)/Np) + posH2*(enH2-np.sum(enat)/Np)
 
     return en_at, np.transpose(pos_at), np.sum(enat), np.transpose(endip)
 
 
-def computekft(root, filename, Np, L, posox, nk, ntry):
+def computekft(root, filename, Np, L, posox, nk, ntry, natpermol):
     start=time.time()
     enk = []
     dipenkx = []
@@ -230,13 +259,13 @@ def computekft(root, filename, Np, L, posox, nk, ntry):
                     np.array(dipenky)), np.transpose(np.array(chk)), np.transpose(np.array(dipkx)), np.transpose(
                     np.array(dipky))
 
-            poschO, posO, posH1, posH2 = computeposmol(Np, datisnap.transpose(), posox)
+            poschO, pos = computeposmol(Np, datisnap.transpose(), posox, natpermol)
 
-            dip_mol, cdmol = computemol(Np, datisnap.transpose(), poschO, posO, posH1, posH2)
+            dip_mol, cdmol = computemol(Np, datisnap.transpose(), poschO, pos)
 
-            ch_at, pos_at = computeat(Np, datisnap.transpose(), poschO, posH1, posH2)
+            ch_at, pos_at = computeat(Np, datisnap.transpose(), poschO, pos)
 
-            en_at, posatomic, em, endip = computeaten(Np, datisnap.transpose(), posO, posH1, posH2)
+            en_at, posatomic, em, endip = computeaten(Np, datisnap.transpose(), pos)
 
             emp = em/Np*np.ones(Np)
 
@@ -404,7 +433,7 @@ def stdblock(array):
     return np.array(var), np.array(binsize)
 
 
-def computestaticresponse(root, filename, Np, L, posox, nk, ntry, temp):
+def computestaticresponse(root, filename, Np, L, posox, nk, ntry, temp, natpermol):
     mantaindata = True
     plot = False
     if os.path.exists(root+'enk.npy') and mantaindata:
@@ -421,7 +450,7 @@ def computestaticresponse(root, filename, Np, L, posox, nk, ntry, temp):
             g.write('number of total snapshots is'+'{}\n'.format(nsnap))
             g.write('done')
     else:
-        nsnap, enk, dipenkx, dipenky, chk, dipkx, dipky = computekft(root, filename, Np, L, posox, nk, ntry)
+        nsnap, enk, dipenkx, dipenky, chk, dipkx, dipky = computekft(root, filename, Np, L, posox, nk, ntry, natpermol)
 
     fac = (16.022 * 1.0e-30 * 4184 / 6.02214e23 * 1.0e-10 / (L ** 3 * 1.0e-30 * 1.38e-23 * temp * 8.854 * 1.0e-12))
     face = (16.022**2) * 1.0e5 / (L**3 * 1.38 * temp * 8.854)

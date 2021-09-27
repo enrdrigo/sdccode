@@ -2,11 +2,11 @@ from modules import initialize
 from modules import compute
 import os
 
-root = '../../1500_mol/'
-filename = 'test.lammpstrj'
+root = './'
+filename = 'dump1.1fs.lammpstrj'
 fileinit = 'init.dat'
 
-posox = 0.125
+posox = float(input('position of the oxy:>'))
 nkpoints = 40
 ntrysnap = -1
 if os.path.exists(root+filename):
@@ -16,7 +16,9 @@ else:
 
 temp = float(input('temperature:>'))
 
+natpermol = int(input('number of atoms per molecule:>'))
+
 staticresponse = compute.computestaticresponse(inputcompute['root'], inputcompute['filename'], inputcompute['N'],
                                                inputcompute['size'], inputcompute['position of the ox'],
-                                               inputcompute['number of k'], inputcompute['number of snapshots'], temp)
+                                               inputcompute['number of k'], inputcompute['number of snapshots'], temp, natpermol)
 
