@@ -60,8 +60,6 @@ def computenltt(root, filename, Np, L, posox, nk, ntry, temp, natpermol, cp, del
 
     chi = np.var(enk[:, :], axis=1)  # (Kcal*m)**2
 
-    nk = 10
-
     corren = np.zeros((nblocks, nk - 1, int(tinblock / 2) + 1), dtype=np.complex_)
 
     ft = np.zeros((nk - 1, int(tinblock / 2) + 1), dtype=np.complex_)

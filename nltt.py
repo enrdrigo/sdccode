@@ -30,3 +30,8 @@ nltt = computenltt.computenltt(inputcompute['root'], inputcompute['filename'], i
                                inputcompute['number of k'], inputcompute['number of snapshots'], temp, natpermol, cp, deltat, tdump)
 
 np.save(root+'nltt.npy', nltt)
+
+xk = np.linspace(1, nkpoints, nkpoints-1) * 2 * np.pi / (inputcompute['size'])
+with open(root+'nlttk.out', '+w') as f:
+    for i in range(nkpoints-1):
+        f.write('{}\t'.format(xk[i])+'{}\n'.format(np.mean(nltt[:, i, -1], axis=0)))
