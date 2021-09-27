@@ -14,7 +14,7 @@ def autocorr(x):
     return np.array(v[int(result.size / 2):])
 
 
-def computenltt(root, filename, Np, L, posox, nk, ntry, temp):
+def computenltt(root, filename, Np, L, posox, nk, ntry, temp, natpermol, cp, deltat, tdump):
     print(root, filename, Np, L, posox, nk, ntry, temp)
     mantaindata = True
     plot = False
@@ -32,13 +32,13 @@ def computenltt(root, filename, Np, L, posox, nk, ntry, temp):
             g.write('number of total snapshots is' + '{}\n'.format(nsnap))
             g.write('done')
     else:
-        nsnap, enk, dipenkx, dipenky, chk, dipkx, dipky = compute.computekft(root, filename, Np, L, posox, nk, ntry)
+        nsnap, enk, dipenkx, dipenky, chk, dipkx, dipky = compute.computekft(root, filename, Np, L, posox, nk, ntry, natpermol)
 
     ndata = int(enk.shape[1])
 
     enkcorr = np.reshape(enk, (nk, int(ndata / 3), 3))
 
-    nblocks = 10
+    nblocks = 5
 
     tblock = int(enkcorr.shape[1] / nblocks)
 
@@ -46,15 +46,15 @@ def computenltt(root, filename, Np, L, posox, nk, ntry, temp):
 
     rho = Np / (6.022e23 * L ** 3 * 1.e-30)  # mol/m^3
 
-    cp = 18.0e-3  # Kcal/mol*k
+    #cp = 18.0e-3  # Kcal/mol*k
 
-    fac = 4186 * rho * cp  # J/k/m^3
+    fac = rho * cp  # J/k/m^3
 
-    dt = 0.5  # fs
+    #deltat = 0.5  # fs
 
-    tdump = 20  # dump step
+    #tdump = 20  # dump step
 
-    dt = 0.5 * tdump  # fs
+    dt = deltat * tdump  # ps
 
     corr = np.zeros((nblocks, tinblock), dtype=np.complex_)
 
@@ -80,7 +80,7 @@ def computenltt(root, filename, Np, L, posox, nk, ntry, temp):
             chik = (np.var(enkcorr[j, :, 0]) + np.var(enkcorr[j, :, 1]) + np.var(enkcorr[j, :, 2])) / 3
 
             ft[j - 1] = chik / (np.cumsum(corr[t, :int(tinblock / 2) + 1]) * (2 * (j) * np.pi / L) ** 2) * (
-                        fac / dt * (1e-10) ** 2 / 1e-15)
+                        fac / dt * (1e-10) ** 2 / 1e-12)
 
         corren[t] = ft
     return corren
