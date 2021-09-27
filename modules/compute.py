@@ -30,9 +30,9 @@ def computeposmol(Np, data_array, posox, natpermol):
         #posH2[1] = np.transpose(datamol[3])[2]
         #posH2[2] = np.transpose(datamol[4])[2]
 
-    posO=pos[0]
-    posH1=pos[1]
-    posH2=pos[2]
+    #posO=pos[0]
+    #posH1=pos[1]
+    #posH2=pos[2]
     #
 
 
@@ -45,7 +45,7 @@ def computeposmol(Np, data_array, posox, natpermol):
 
         #
         poschO = np.zeros((3, nmol))
-        poschO = posO - posox * bisdir / np.sqrt(bisdir[0] ** 2 + bisdir[1] ** 2 + bisdir[2] ** 2)
+        poschO = pos[0] - posox * bisdir / np.sqrt(bisdir[0] ** 2 + bisdir[1] ** 2 + bisdir[2] ** 2)
 
         #
     else:
@@ -77,8 +77,8 @@ def computemol(Np, data_array, poschO, pos):
         ch[i] = np.transpose(datamol[5])[i]
 
 
-    chH1 = ch[1]  # np.transpose(data_array[5])[1]
-    chH2 = ch[2]  # np.transpose(data_array[5])[2]
+    #chH1 = ch[1]  # np.transpose(data_array[5])[1]
+    #chH2 = ch[2]  # np.transpose(data_array[5])[2]
     #
 
     #
@@ -118,7 +118,7 @@ def computeat(Np, data_array, poschO, pos):
     #
 
     #
-    posm = np.zeros((3, nmol, 3))
+    posm = np.zeros((natpermol, nmol, 3))
     posm[0] = np.transpose(poschO)
     for i in range(1, natpermol):
         posm[i] = np.transpose(pos[i])
