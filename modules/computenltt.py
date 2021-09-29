@@ -1,10 +1,6 @@
-from modules import initialize
-from modules import dipole
+import pickle as pk
 import numpy as np
 from scipy import signal
-from scipy.fft import fft
-from modules import compute
-import matplotlib.pyplot as plt
 import os
 
 
@@ -14,31 +10,37 @@ def autocorr(x):
     return np.array(v[int(result.size / 2):])
 
 
-def computenltt(root, filename, Np, L, posox, nk, ntry, temp, natpermol, cp, deltat, tdump):
-    print(root, filename, Np, L, posox, nk, ntry, temp)
-    mantaindata = True
-    plot = False
-    if os.path.exists(root + 'enk.npy') and mantaindata:
-        enk = np.load(root + 'enk.npy')
-        dipenkx = np.load(root + 'dipenkx.npy')
-        dipenky = np.load(root + 'dipenky.npy')
-        chk = np.load(root + 'chk.npy')
-        dipkx = np.load(root + 'dipkx.npy')
-        dipky = np.load(root + 'dipky.npy')
-        nsnap = np.shape(enk)[1] / 3
-        with open(root + 'output.out', 'a') as g:
-            print('number of total snapshots is', nsnap)
-            print('done')
-            g.write('number of total snapshots is' + '{}\n'.format(nsnap))
-            g.write('done')
+def computenltt(root, Np, L, nk, cp, deltat, tdump):
+    if os.path.exists(root + 'chk.pkl'):
+        with open(root + 'enk.pkl', 'rb') as g:
+            enkb = pk.load(g)
+            enk = np.transpose(np.array(enkb))
+        with open(root + 'dipenkx.pkl', 'rb') as g:
+            dipenkxb = pk.load(g)
+            dipenkx = np.transpose(np.array(dipenkxb))
+        with open(root + 'dipenky.pkl', 'rb') as g:
+            dipenkyb = pk.load(g)
+            dipenky = np.transpose(np.array(dipenkyb))
+        with open(root + 'chk.pkl', 'rb') as g:
+            chkb = pk.load(g)
+            chk = np.transpose(np.array(chkb))
+        with open(root + 'dipkx.pkl', 'rb') as g:
+            dipkxb = pk.load(g)
+            dipkx = np.transpose(np.array(dipkxb))
+        with open(root + 'dipky.pkl', 'rb') as g:
+            dipkyb = pk.load(g)
+            dipky = np.transpose(np.array(dipkyb))
+        nsnap = int(len(enkb)/3)
     else:
-        nsnap, enk, dipenkx, dipenky, chk, dipkx, dipky = compute.computekft(root, filename, Np, L, posox, nk, ntry, natpermol)
+        raise ValueError
+
+    # nsnap, enk, dipenkx, dipenky, chk, dipkx, dipky = computekft(root, filename, Np, L, posox, nk, ntry, natpermol)
 
     ndata = int(enk.shape[1])
 
     enkcorr = np.reshape(enk, (nk, int(ndata / 3), 3))
 
-    nblocks = 20
+    nblocks = 10
 
     tblock = int(enkcorr.shape[1] / nblocks)
 
@@ -46,13 +48,7 @@ def computenltt(root, filename, Np, L, posox, nk, ntry, temp, natpermol, cp, del
 
     rho = Np / (6.022e23 * L ** 3 * 1.e-30)  # mol/m^3
 
-    #cp = 18.0e-3  # Kcal/mol*k
-
     fac = rho * cp  # J/k/m^3
-
-    #deltat = 0.5  # fs
-
-    #tdump = 20  # dump step
 
     dt = deltat * tdump  # ps
 
@@ -72,10 +68,10 @@ def computenltt(root, filename, Np, L, posox, nk, ntry, temp, natpermol, cp, del
 
         for j in range(1, nk):
             corr = np.zeros((nblocks, tinblock), dtype=np.complex_)
-            for i in range(0, tinblock, int(tinblock / 40)):
-                corr[t] += np.array(autocorr(enkcorr[j, (tblock * t +i):(tblock * t + tinblock +i), 0])) / 40 / 3
-                corr[t] += np.array(autocorr(enkcorr[j, (tblock * t +i):(tblock * t + tinblock +i), 1])) / 40 / 3
-                corr[t] += np.array(autocorr(enkcorr[j, (tblock * t +i):(tblock * t + tinblock +i), 2])) / 40 / 3
+            for i in range(0, tinblock, int(tinblock / 10)):
+                corr[t] += np.array(autocorr(enkcorr[j, (tblock * t +i):(tblock * t + tinblock +i), 0])) / 10 / 3
+                corr[t] += np.array(autocorr(enkcorr[j, (tblock * t +i):(tblock * t + tinblock +i), 1])) / 10 / 3
+                corr[t] += np.array(autocorr(enkcorr[j, (tblock * t +i):(tblock * t + tinblock +i), 2])) / 10 / 3
 
             chik = (np.var(enkcorr[j, :, 0])  + np.var(enkcorr[j, :, 1]) + np.var(enkcorr[j, :, 2])) / 3
 

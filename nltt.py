@@ -8,7 +8,7 @@ filename = 'dump1.1fs.lammpstrj'
 fileinit = 'init.dat'
 
 posox = float(input('position of the oxy:>\n'))
-nkpoints = 40
+nkpoints = 10
 ntrysnap = -1
 if os.path.exists(root+filename):
     inputcompute = initialize.getinitialize(filename, root, posox, nkpoints, ntrysnap)
@@ -25,9 +25,9 @@ deltat = float(input('time step in metal units:>\n'))
 
 tdump = int(input('dump interval:>\n'))
 
-nltt, chi, corrk = computenltt.computenltt(inputcompute['root'], inputcompute['filename'], inputcompute['N'],
-                               inputcompute['size'], inputcompute['position of the ox'],
-                               inputcompute['number of k'], inputcompute['number of snapshots'], temp, natpermol, cp, deltat, tdump)
+
+nltt, chi, corrk = computenltt.computenltt(inputcompute['root'], inputcompute['N'], inputcompute['size'],
+                                           inputcompute['number of k'],  cp, deltat, tdump)
 
 np.save(root+'nltt.npy', nltt)
 
