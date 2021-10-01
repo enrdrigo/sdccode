@@ -132,10 +132,12 @@ def computekftnumba(root, Np, L, posox, nk, ntry, natpermol):
 
             datisnap = dump[str(i)][()]
 
-            if ifprint:
-                print('tempo ricerca nel dizionario', time.time() - start1)
-
             start2 = time.time()
+
+            if ifprint:
+                print('tempo ricerca nel dizionario', start2 - start1)
+
+
 
             poschO, pos = compute.computeposmol(Np, datisnap.transpose(), posox, natpermol)
 
@@ -147,10 +149,11 @@ def computekftnumba(root, Np, L, posox, nk, ntry, natpermol):
 
             emp = em / Np * np.ones(Np)
 
-            if ifprint:
-                print('tempo calcolo funzioni', time.time() - start2)
-
             start3 = time.time()
+
+            if ifprint:
+                print('tempo calcolo funzioni', start3 - start2)
+
 
             enklist, dipenkxlist, dipenkylist, chklist, dipkxlist, dipkylist \
                 = numbacomputekft((en_at[:] - emp[:]), (endip[:, 0]), (endip[:, 1]), (ch_at[:]), (dip_mol[:, 0]),
@@ -206,15 +209,20 @@ def computekftnumba(root, Np, L, posox, nk, ntry, natpermol):
 
             dipky.append(dipkylist)
 
+            start4 = time.time()
+
             if ifprint:
-                print('tempo calcolo ftk', time.time() - start3)
+                print('tempo calcolo ftk', start4 - start3)
 
             if int(len(chk) / 3 + 1) % int(len(snap)/10) == 0:
                 print('got ' + str(len(chk) / 3) + ' snapshot' + '({}%)'.format(int(len(chk) / 3 + 1)*100//len(snap)+1))
-                print('average elapsed time per snapshot', (time.time() - start0) / (1 + len(chk) / 3))
+                print('average elapsed time per snapshot ', (time.time() - start0) / (1 + len(chk) / 3))
                 with open(root + 'output.out', 'a') as z:
                     z.write('got ' + str(len(chk) / 3) + ' snapshot' + '({}%)\n'.format(int(len(chk) / 3 + 1)*100//len(snap)+1))
                     z.write('average elapsed time per snapshot {}\n'.format((time.time() - start0) / (1 + len(chk) / 3)))
+                    z.write('tempo ricerca nel dizionario {}\n'.format(start2 - start1))
+                    z.write('tempo calcolo funzioni {}\n'.format(start3 - start2))
+                    z.write('tempo calcolo ftk {}\n'.format(start4 - start3))
 
             if int(len(chk) / 3 + 1) % int(len(snap)/4+1) == 0:
                 with open(root + 'output.out', 'a') as z:
@@ -234,7 +242,7 @@ def computekftnumba(root, Np, L, posox, nk, ntry, natpermol):
                     print('got ' + str(len(chk) / 3) + ' snapshot')
                     print('average elapsed time per snapshot', (time.time() - start0) / (1 + len(chk) / 3))
                     z.write('got ' + str(len(chk) / 3) + ' snapshot\n')
-                    z.write('average elapsed time per snapshot' + '{}\n'.format(
+                    z.write('average elapsed time per snapshot ' + '{}\n'.format(
                         (time.time() - start0) / (1 + len(chk) / 3)))
 
             if len(chk) + 3 == ntry * 3:
