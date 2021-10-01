@@ -4,7 +4,7 @@ import numpy as np
 import os
 
 root = './'
-filename = '../datitest/0510/dump1.1fs.lammpstrj'
+filename = 'dump1.1fs.lammpstrj'
 fileinit = 'init.dat'
 
 posox = float(input('position of the oxy:>\n'))
