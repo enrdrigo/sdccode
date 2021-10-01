@@ -4,11 +4,11 @@ import numpy as np
 import os
 
 root = './'
-filename = 'dump1.1fs.lammpstrj'
+filename = '../datitest/0510/dump1.1fs.lammpstrj'
 fileinit = 'init.dat'
 
 posox = float(input('position of the oxy:>\n'))
-nkpoints = 10
+nkpoints = 20
 ntrysnap = -1
 if os.path.exists(root+filename):
     inputcompute = initialize.getinitialize(filename, root, posox, nkpoints, ntrysnap)

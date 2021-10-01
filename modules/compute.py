@@ -3,12 +3,13 @@ import pickle as pk
 import matplotlib.pyplot as plt
 import os
 import time
+from numba import njit, jit
 
 # ----------------------------------------------------------------------------------------------------------------------
 # COMPUTES THE POSITION OF THE OXY AND OF THE TWO HYDROGENS AT GIVEN SNAPSHOT. IT ALSO GETS THE POSITION OF THE
 # FOURTH PARTICLE IN THE TIP4P/2005 MODEL OF WATER WHERE THERE IS THE CHARGE OF THE OXY (SEE TIP4P/2005 MODEL OF WATER).
 
-
+@njit(fastmath=True)
 def computeposmol(Np, data_array, posox, natpermol):
     nmol = int(Np / natpermol)
     datamol = np.zeros((8, nmol, natpermol))
@@ -60,7 +61,7 @@ def computeposmol(Np, data_array, posox, natpermol):
 # COMPUTES THE MOLECULAR DIPOLES AND THE CENTER OF MASS OF THE MOLECULES AT GIVEN SNAPSHOT. COMPITING THE MOLECULAR
 # DIPOLE WE MUST REMEMBER THAT THE OXY CHARGE IS NOT LOCATED IN THE OXY POSITION (SEE TIP4P/2005 MODEL OF WATER).
 
-
+@njit(fastmath=True)
 def computemol(Np, data_array, poschO, pos):
     natpermol = np.shape(pos)[0]
     nmol = int(Np / natpermol)
@@ -82,17 +83,22 @@ def computemol(Np, data_array, poschO, pos):
     #
 
     #
-    mass = [15.9994, 1.008, 1.008]
-    cdmmol = np.zeros((3, nmol))
+    mass = np.array([15.9994, 1.008, 1.008])
+    cdmmoln = np.zeros((natpermol, 3, nmol))
     for i in range(natpermol):
-        cdmmol += pos[i]*mass[i]/sum(mass)
+        cdmmoln[i] = pos[i]*mass[i]/np.sum(mass)
+    cdmmol = np.zeros((3, nmol))
+    cdmmol = np.sum(cdmmoln, axis=0)
     #
 
     #
     pos_mch = np.zeros((3, nmol))
-    pos_mch = poschO * ch[0]
+    pos_mch0 = poschO * ch[0]
+
+    pos_mchn = np.zeros((natpermol, 3, nmol))
     for i in range(natpermol-1):
-        pos_mch += pos[i+1]*ch[i+1]
+        pos_mchn[i] = pos[i+1]*ch[i+1]
+    pos_mch = pos_mch0 + np.sum(pos_mchn, axis=0)
     #
 
     #
@@ -122,12 +128,12 @@ def computeat(Np, data_array, poschO, pos):
     posm[0] = np.transpose(poschO)
     for i in range(1, natpermol):
         posm[i] = np.transpose(pos[i])
-        #posm[2] = np.transpose(posH2)
+
     #
 
     #
     pos_at = np.zeros((3, Np))
-    test = posm.transpose()
+    test = np.transpose(posm)
     pos_at = test.reshape((3, Np))
     #
 
@@ -140,7 +146,7 @@ def computeat(Np, data_array, poschO, pos):
 
     return ch_at, np.transpose(pos_at)
 
-
+@njit(fastmath=True)
 def computeaten(Np, data_array, pos):
     natpermol = np.shape(pos)[0]
     nmol = int(Np / natpermol)
@@ -175,10 +181,13 @@ def computeaten(Np, data_array, pos):
     #
 
     endip = np.zeros((3, nmol))
+    endipn = np.zeros((natpermol, 3, nmol))
     for i in range(natpermol):
-        endip += pos[i]*(en[i]-np.sum(enat)/Np)#poschO*(enO-np.sum(enat)/Np) + posH1*(enH1-np.sum(enat)/Np) + posH2*(enH2-np.sum(enat)/Np)
+        endipn[i] = pos[i]*(en[i]-np.sum(enat)/Np)#poschO*(enO-np.sum(enat)/Np) + posH1*(enH1-np.sum(enat)/Np) + posH2*(enH2-np.sum(enat)/Np)
+    endip = np.sum(endipn, axis=0)
 
     return en_at, np.transpose(pos_at), np.sum(enat), np.transpose(endip)
+
 
 
 def computekft(root, filename, Np, L, posox, nk, ntry, natpermol):
@@ -241,6 +250,7 @@ def computekft(root, filename, Np, L, posox, nk, ntry, natpermol):
                     pk.dump(dipky, g)
                 print('END READ FILE')
                 print('got ' + str(len(chk) / 3) + ' snapshot')
+                print('elapsed time: ', time.time() - start)
                 with open(root + 'output.out', 'a') as z:
                     z.write('got ' + str(len(chk) / 3) + ' snapshot\n')
 

@@ -3,7 +3,7 @@ from modules import computestaticresponse
 import os
 
 root = './'
-filename = 'dump1.1fs.lammpstrj'
+filename = '../datitest/0510/dump1.1fs.lammpstrj'
 fileinit = 'init.dat'
 
 posox = float(input('position of the oxy:>'))

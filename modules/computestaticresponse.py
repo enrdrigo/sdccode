@@ -43,7 +43,7 @@ def computestaticresponse(root, L, nk, temp):
         with open(root + 'dipky.pkl', 'rb') as g:
             dipkyb = pk.load(g)
             dipky = np.transpose(np.array(dipkyb))
-        nsnap = int(len(enkb) / 3)
+        nsnap = int(len(chkb) / 3)
     else:
         raise ValueError
 
