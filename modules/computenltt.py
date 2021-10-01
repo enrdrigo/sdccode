@@ -33,7 +33,6 @@ def computenltt(root, Np, L, nk, cp, deltat, tdump):
         nsnap = int(len(enkb)/3)
     else:
         raise ValueError
-    print(enk.shape)
 
     # nsnap, enk, dipenkx, dipenky, chk, dipkx, dipky = computekft(root, filename, Np, L, posox, nk, ntry, natpermol)
 

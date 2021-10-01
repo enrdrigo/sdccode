@@ -57,7 +57,7 @@ def read_dump(root, filename, Np, ntry):
 
                 datisnap = np.array(d)
                 d = []
-                dump.create_dataset(str((index + 1) // (Np + 9)), data=datisnap)
+                dump.create_dataset(str((index + 1) // (Np + 9)), data=datisnap) #compression for float do not work well
                 # print(index, (index + 1) / (Np + 9))
 
                 if (index + 1) // (Np + 9) + 3 == ntry * 3:
@@ -212,6 +212,9 @@ def computekftnumba(root, Np, L, posox, nk, ntry, natpermol):
             if int(len(chk) / 3 + 1) % int(len(snap)/10) == 0:
                 print('got ' + str(len(chk) / 3) + ' snapshot' + '({}%)'.format(int(len(chk) / 3 + 1)*100//len(snap)+1))
                 print('average elapsed time per snapshot', (time.time() - start0) / (1 + len(chk) / 3))
+                with open(root + 'output.out', 'a') as z:
+                    z.write('got ' + str(len(chk) / 3) + ' snapshot' + '({}%)\n'.format(int(len(chk) / 3 + 1)*100//len(snap)+1))
+                    z.write('average elapsed time per snapshot {}\n'.format((time.time() - start0) / (1 + len(chk) / 3)))
 
             if int(len(chk) / 3 + 1) % int(len(snap)/4+1) == 0:
                 with open(root + 'output.out', 'a') as z:
