@@ -214,7 +214,7 @@ def computekftnumba(root, Np, L, posox, nk, ntry, natpermol):
             if ifprint:
                 print('tempo calcolo ftk', start4 - start3)
 
-            if int(len(chk) / 3-1) % int(len(snap)/10) == 0:
+            if int(len(chk) / 3-2) % int(len(snap)/10) == 0:
                 print('got ' + str(len(chk) / 3) + ' snapshot' + '({}%)'.format(int(len(chk) / 3 + 1)*100//len(snap)+1))
                 print('average elapsed time per snapshot ', (time.time() - start0) / (1 + len(chk) / 3))
                 with open(root + 'output.out', 'a') as z:
@@ -290,7 +290,7 @@ def computekftnumba(root, Np, L, posox, nk, ntry, natpermol):
         return
 
 
-@njit(fastmath=True, parallel=False)
+@njit(fastmath=True, parallel=True)
 def numbacomputekft(f1, f2, f3, f4, f5, f6, x1, x2, x3, x4, x5, x6, L, nk):
     fk1 = [np.sum(f1 * np.exp(1j * x1 * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L)) for i in range(nk)]
     fk2 = [np.sum(f2 * np.exp(1j * x2 * 2 * -i * np.pi / L)) for i in range(nk)]

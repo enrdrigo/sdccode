@@ -54,7 +54,7 @@ def computenltt(root, Np, L, nk, cp, deltat, tdump):
 
     corr = np.zeros((nblocks, tinblock), dtype=np.complex_)
 
-    chi = np.var(enk[:, :], axis=1)  # (Kcal*m)**2
+    chi = np.var(enk[:, :], axis=1)  # (eV**2
 
     corren = np.zeros((nblocks, nk - 1, int(tinblock / 2) + 1), dtype=np.complex_)
 
@@ -69,9 +69,9 @@ def computenltt(root, Np, L, nk, cp, deltat, tdump):
         for j in range(1, nk):
             corr = np.zeros((nblocks, tinblock), dtype=np.complex_)
             for i in range(0, tinblock, int(tinblock / 10)):
-                corr[t] += np.array(autocorr(enkcorr[j, (tblock * t +i):(tblock * t + tinblock +i), 0])) / 10 / 3
-                corr[t] += np.array(autocorr(enkcorr[j, (tblock * t +i):(tblock * t + tinblock +i), 1])) / 10 / 3
-                corr[t] += np.array(autocorr(enkcorr[j, (tblock * t +i):(tblock * t + tinblock +i), 2])) / 10 / 3
+                corr[t] += (autocorr(enkcorr[j, (tblock * t +i):(tblock * t + tinblock +i), 0])) / 10 / 3
+                corr[t] += (autocorr(enkcorr[j, (tblock * t +i):(tblock * t + tinblock +i), 1])) / 10 / 3
+                corr[t] += (autocorr(enkcorr[j, (tblock * t +i):(tblock * t + tinblock +i), 2])) / 10 / 3
 
             chik = (np.var(enkcorr[j, :, 0])  + np.var(enkcorr[j, :, 1]) + np.var(enkcorr[j, :, 2])) / 3
 

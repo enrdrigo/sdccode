@@ -115,7 +115,7 @@ def computestaticresponse(root, L, nk, temp):
             g.write('{} \t'.format(np.real(d[i])) + '{} \t'.format(np.real(vd[i])))
             g.write('{} \t'.format(np.real(e[i])) + '{} \n'.format(np.real(ve[i])))
 
-    v, x = stdblock((chk[0] / xk[0]) * np.conj(chk[0] / xk[0]) * face)
+    v, x = stdblock((chk[1] / xk[1]) * np.conj(chk[1] / xk[1]) * face)
     if plot:
         fig, ax = plt.subplots(1, figsize=(8, 6), constrained_layout=True)
         plt.plot(x, np.sqrt(v))
@@ -127,7 +127,7 @@ def computestaticresponse(root, L, nk, temp):
         for i in range(len(v)):
             g.write('{}\t'.format(x[i]) + '{}\n'.format(np.sqrt(v[i])))
 
-    v, x = stdblock((enk[0] / xk[0]) * np.conj(chk[0] / xk[0]) * fac)
+    v, x = stdblock((enk[1] / xk[1]) * np.conj(chk[1] / xk[1]) * fac)
     if plot:
         fig, ax = plt.subplots(1, figsize=(8, 6), constrained_layout=True)
         plt.plot(x, np.sqrt(v))
@@ -157,8 +157,8 @@ def computestaticresponse(root, L, nk, temp):
         plt.legend()
         plt.show(block=False)
 
-    stdch = np.real(np.sqrt((va / d / temp) ** 2 + (a / d ** 2 / temp * vd) ** 2))
-    tpcch = np.real(a / d / temp)
+    stdch = np.real(np.sqrt((va /(1 -1/d[0]) / temp) ** 2))# + (a / d ** 2 / temp * vd) ** 2))
+    tpcch = np.real(a / (1 - 1 / d[0]) / temp)
 
     stddip = np.real(np.sqrt((vb / e / temp) ** 2 + (b / e ** 2 / temp * ve) ** 2))
     tpcdip = np.real(b / e / temp)
@@ -174,7 +174,7 @@ def computestaticresponse(root, L, nk, temp):
 
     with open(root + 'thermopolarizationresponse.out', '+w') as g:
         g.write('# k\t tpc via the charge \t tpc via the dipoles\n')
-        for i in range(nk):
+        for i in range(1,nk):
             g.write('{}\t'.format(xk[i]))
             g.write('{}\t'.format(tpcch[i]) + '{}\t'.format(stdch[i]))
             g.write('{}\t'.format(tpcdip[i]) + '{}\n'.format(stddip[i]))
