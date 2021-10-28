@@ -5,10 +5,10 @@ from numba import njit
 import time
 import h5py
 import os
+#from nfft import nfft_adjoint
 
 
 def read_dump(root, filename, Np, ntry):
-
     with open(root + filename, 'r') as f:
 
         if os.path.exists(root + 'dump.h5'):
@@ -57,7 +57,8 @@ def read_dump(root, filename, Np, ntry):
 
                 datisnap = np.array(d)
                 d = []
-                dump.create_dataset(str((index + 1) // (Np + 9)), data=datisnap) #compression for float do not work well
+                dump.create_dataset(str((index + 1) // (Np + 9)),
+                                    data=datisnap)  # compression for float do not work well
                 # print(index, (index + 1) / (Np + 9))
 
                 if (index + 1) // (Np + 9) + 3 == ntry * 3:
@@ -92,6 +93,7 @@ def computekftnumba(root, Np, L, posox, nk, ntry, natpermol):
     dipkx = []
     dipky = []
     ifprint = False
+    G, Gmol, Gmod, Gmodmol = Ggenerate(nk, Np, natpermol)
     with open(root + 'output.out', 'a') as g:
         print('start the computation of the fourier transform of the densities')
         g.write('start the computation of the fourier transform of the densities\n')
@@ -102,18 +104,10 @@ def computekftnumba(root, Np, L, posox, nk, ntry, natpermol):
         if os.path.exists(root + 'chk.pkl'):
             with open(root + 'enk.pkl', 'rb') as g:
                 enk = pk.load(g)
-            with open(root + 'dipenkx.pkl', 'rb') as g:
-                dipenkx = pk.load(g)
-            with open(root + 'dipenky.pkl', 'rb') as g:
-                dipenky = pk.load(g)
             with open(root + 'chk.pkl', 'rb') as g:
                 chk = pk.load(g)
-            with open(root + 'dipkx.pkl', 'rb') as g:
-                dipkx = pk.load(g)
-            with open(root + 'dipky.pkl', 'rb') as g:
-                dipky = pk.load(g)
 
-            lenght = int(len(chk) / 3)
+            lenght = int(len(chk))
 
             if len(snap) != lenght:
                 pass
@@ -128,7 +122,7 @@ def computekftnumba(root, Np, L, posox, nk, ntry, natpermol):
             start1 = time.time()
 
             if ifprint:
-                print(len(chk) / 3)
+                print(len(chk))
 
             datisnap = dump[str(i)][()]
 
@@ -136,8 +130,6 @@ def computekftnumba(root, Np, L, posox, nk, ntry, natpermol):
 
             if ifprint:
                 print('tempo ricerca nel dizionario', start2 - start1)
-
-
 
             poschO, pos = compute.computeposmol(Np, datisnap.transpose(), posox, natpermol)
 
@@ -154,149 +146,127 @@ def computekftnumba(root, Np, L, posox, nk, ntry, natpermol):
             if ifprint:
                 print('tempo calcolo funzioni', start3 - start2)
 
+            enklist, chklist \
+                = numbacomputekft((en_at[:] - emp[:]), (ch_at[:]), \
+                                  posatomic[:, :], pos_at[:, :], \
+                                  L, G, Gmol, Gmodmol, nk)
 
-            enklist, dipenkxlist, dipenkylist, chklist, dipkxlist, dipkylist \
-                = numbacomputekft((en_at[:] - emp[:]), (endip[:, 0]), (endip[:, 1]), (ch_at[:]), (dip_mol[:, 0]),
-                                  (dip_mol[:, 1]), \
-                                  posatomic[:, 0], cdmol[:, 0], cdmol[:, 0], pos_at[:, 0], cdmol[:, 0], cdmol[:, 0], L,
-                                  nk)
-
-            enk.append(enklist)
-
-            dipenkx.append(dipenkxlist)
-
-            dipenky.append(dipenkylist)
-
-            chk.append(chklist)
-
-            dipkx.append(dipkxlist)
-
-            dipky.append(dipkylist)
-
-            enklist, dipenkxlist, dipenkylist, chklist, dipkxlist, dipkylist \
-                = numbacomputekft((en_at[:] - emp[:]), (endip[:, 1]), (endip[:, 2]), (ch_at[:]), (dip_mol[:, 1]),
-                                  (dip_mol[:, 2]), \
-                                  posatomic[:, 1], cdmol[:, 1], cdmol[:, 0], pos_at[:, 1], cdmol[:, 1], cdmol[:, 0], L,
-                                  nk)
+            # enklist = nfft_adjoint(posatomic[:,0]/L, (en_at[:]- emp[:]), Np)
 
             enk.append(enklist)
 
-            dipenkx.append(dipenkxlist)
-
-            dipenky.append(dipenkylist)
-
             chk.append(chklist)
-
-            dipkx.append(dipkxlist)
-
-            dipky.append(dipkylist)
-
-            enklist, dipenkxlist, dipenkylist, chklist, dipkxlist, dipkylist \
-                = numbacomputekft((en_at[:] - emp[:]), (endip[:, 2]), (endip[:, 2]), (ch_at[:]), (dip_mol[:, 2]),
-                                  (dip_mol[:, 2]), \
-                                  posatomic[:, 2], cdmol[:, 2], cdmol[:, 1], pos_at[:, 2], cdmol[:, 2], cdmol[:, 1], L,
-                                  nk)
-
-            enk.append(enklist)
-
-            dipenkx.append(dipenkxlist)
-
-            dipenky.append(dipenkylist)
-
-            chk.append(chklist)
-
-            dipkx.append(dipkxlist)
-
-            dipky.append(dipkylist)
 
             start4 = time.time()
 
             if ifprint:
                 print('tempo calcolo ftk', start4 - start3)
 
-            if int(len(chk) / 3-2) % int(len(snap)/10) == 0:
-                print('got ' + str(len(chk) / 3) + ' snapshot' + '({}%)'.format(int(len(chk) / 3 + 1)*100//len(snap)+1))
-                print('average elapsed time per snapshot ', (time.time() - start0) / (1 + len(chk) / 3))
+            if int(len(chk) - 2) % int(len(snap) / 10) == 0:
+                print('got ' + str(len(chk)) + ' snapshot' + '({}%)'.format(int(len(chk) + 1) * 100 // len(snap) + 1))
+                print('average elapsed time per snapshot ', (time.time() - start0) / (1 + len(chk)))
                 with open(root + 'output.out', 'a') as z:
-                    z.write('got ' + str(len(chk) / 3) + ' snapshot' + '({}%)\n'.format(int(len(chk) / 3 + 1)*100//len(snap)+1))
-                    z.write('average elapsed time per snapshot {}\n'.format((time.time() - start0) / (1 + len(chk) / 3)))
+                    z.write('got ' + str(len(chk)) + ' snapshot' + '({}%)\n'.format(
+                        int(len(chk) + 1) * 100 // len(snap) + 1))
+                    z.write('average elapsed time per snapshot {}\n'.format((time.time() - start0) / (1 + len(chk))))
                     z.write('tempo ricerca nel dizionario {}\n'.format(start2 - start1))
                     z.write('tempo calcolo funzioni {}\n'.format(start3 - start2))
                     z.write('tempo calcolo ftk {}\n'.format(start4 - start3))
 
-            if int(len(chk) / 3 + 1) % int(len(snap)/4+1) == 0:
+            if int(len(chk) + 1) % int(len(snap) / 4 + 1) == 0:
                 with open(root + 'output.out', 'a') as z:
                     with open(root + 'enk.pkl', 'wb+') as g:
                         pk.dump(enk, g)
-                    with open(root + 'dipenkx.pkl', 'wb+') as g:
-                        pk.dump(dipenkx, g)
-                    with open(root + 'dipenky.pkl', 'wb+') as g:
-                        pk.dump(dipenky, g)
                     with open(root + 'chk.pkl', 'wb+') as g:
                         pk.dump(chk, g)
-                    with open(root + 'dipkx.pkl', 'wb+') as g:
-                        pk.dump(dipkx, g)
-                    with open(root + 'dipky.pkl', 'wb+') as g:
-                        pk.dump(dipky, g)
 
-                    print('got ' + str(len(chk) / 3) + ' snapshot')
-                    print('average elapsed time per snapshot', (time.time() - start0) / (1 + len(chk) / 3))
-                    z.write('got ' + str(len(chk) / 3) + ' snapshot\n')
+                    print('got ' + str(len(chk)) + ' snapshot')
+                    print('average elapsed time per snapshot', (time.time() - start0) / (1 + len(chk)))
+                    z.write('got ' + str(len(chk)) + ' snapshot\n')
                     z.write('average elapsed time per snapshot ' + '{}\n'.format(
-                        (time.time() - start0) / (1 + len(chk) / 3)))
+                        (time.time() - start0) / (1 + len(chk))))
 
-            if len(chk) + 3 == ntry * 3:
+            if len(chk) + 3 == ntry:
                 with open(root + 'enk.pkl', 'wb+') as g:
                     pk.dump(enk, g)
-                with open(root + 'dipenkx.pkl', 'wb+') as g:
-                    pk.dump(dipenkx, g)
-                with open(root + 'dipenky.pkl', 'wb+') as g:
-                    pk.dump(dipenky, g)
                 with open(root + 'chk.pkl', 'wb+') as g:
                     pk.dump(chk, g)
-                with open(root + 'dipkx.pkl', 'wb+') as g:
-                    pk.dump(dipkx, g)
-                with open(root + 'dipky.pkl', 'wb+') as g:
-                    pk.dump(dipky, g)
                 with open(root + 'output.out', 'a') as g:
-                    print('number of total snapshots is', len(chk) / 3)
+                    print('number of total snapshots is', len(chk))
                     print('done')
                     print('elapsed time: ', time.time() - start0)
-                    g.write('number of total snapshots is' + '{}\n'.format(len(chk) / 3))
+                    g.write('number of total snapshots is' + '{}\n'.format(len(chk)))
                     g.write('done')
                 print('END COMPUTE NTRY')
                 return
 
         with open(root + 'output.out', 'a') as g:
-            print('number of total snapshots is', len(chk) / 3)
+            print('number of total snapshots is', len(chk))
             print('done')
             print('elapsed time: ', time.time() - start0)
-            g.write('number of total snapshots is' + '{}\n'.format(len(chk) / 3))
+            g.write('number of total snapshots is' + '{}\n'.format(len(chk)))
             g.write('done')
 
         with open(root + 'enk.pkl', 'wb+') as g:
             pk.dump(enk, g)
-        with open(root + 'dipenkx.pkl', 'wb+') as g:
-            pk.dump(dipenkx, g)
-        with open(root + 'dipenky.pkl', 'wb+') as g:
-            pk.dump(dipenky, g)
         with open(root + 'chk.pkl', 'wb+') as g:
             pk.dump(chk, g)
-        with open(root + 'dipkx.pkl', 'wb+') as g:
-            pk.dump(dipkx, g)
-        with open(root + 'dipky.pkl', 'wb+') as g:
-            pk.dump(dipky, g)
         print('END COMPUTE GOOD')
         return
 
 
-@njit(fastmath=True, parallel=True)
-def numbacomputekft(f1, f2, f3, f4, f5, f6, x1, x2, x3, x4, x5, x6, L, nk):
+def Ggenerate(nk, Np, natpermol):
+    G = np.zeros((nk, 3))
+    conta = 0
+    i1 = 1
+    i2 = 0
+    i3 = 0
+    G[0] = np.array([0, 0, 0])
+    for i in range(1, nk):
+        G[i] = np.array([i1, i2, i3])
+        if G[i][0] != G[i][1] and G[i][1] == G[i][2]:
+            i2 += 1
+            if G[i][0] != G[i][1] and G[i][1] != G[i][2]:
+                i3 += 1
+        else:
+            if G[i][1] != G[i][2]:
+                i3 += 1
+        if G[i][0] == G[i][1] and G[i][0] == G[i][2]:
+            i1 += 1
+            i2 = 0
+            i3 = 0
+    Gmod = np.linalg.norm(G, axis=1)
+    return G[:, np.newaxis, :] * np.ones((nk, Np, 3)), G[:, np.newaxis, :] * np.ones(
+        (nk, int(Np / natpermol), 3)), Gmod[:, np.newaxis] * np.ones((nk, Np)), Gmod[:, np.newaxis] * np.ones(
+        (nk, int(Np / natpermol)))
 
-    fk1 = [np.sum(f1 * np.exp(1j * x1 * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L)) for i in range(nk)]
-    fk2 = [np.sum(f2 * np.exp(1j * x2 * 2 * -i * np.pi / L)) for i in range(nk)]
-    fk3 = [np.sum(f3 * np.exp(1j * x3 * 2 * -i * np.pi / L)) for i in range(nk)]
-    fk4 = [np.sum(f4 * np.exp(1j * x4 * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L)) for i in range(nk)]
-    fk5 = [np.sum(f5 * np.exp(1j * x5 * 2 * -i * np.pi / L)) for i in range(nk)]
-    fk6 = [np.sum(f6 * np.exp(1j * x6 * 2 * -i * np.pi / L)) for i in range(nk)]
-    return fk1, fk2, fk3, fk4, fk5, fk6
+
+def Ggeneratemod(nk):
+    G = np.zeros((nk, 3))
+    conta = 0
+    i1 = 1
+    i2 = 0
+    i3 = 0
+    G[0] = np.array([0, 0, 0])
+    for i in range(1, nk):
+        G[i] = np.array([i1, i2, i3])
+        if G[i][0] != G[i][1] and G[i][1] == G[i][2]:
+            i2 += 1
+            if G[i][0] != G[i][1] and G[i][1] != G[i][2]:
+                i3 += 1
+        else:
+            if G[i][1] != G[i][2]:
+                i3 += 1
+        if G[i][0] == G[i][1] and G[i][0] == G[i][2]:
+            i1 += 1
+            i2 = 0
+            i3 = 0
+    Gmod = np.linalg.norm(G, axis=1)
+    return Gmod
+
+
+@njit(fastmath=True, parallel=True)
+def numbacomputekft(f1, f2, x1, x2, L, G, nk):
+    fk1 = [np.sum(f1 * np.exp(1j * 2 * np.sum(x1 * -(G[i] + 1.0e-5), axis=1) * np.pi / L)) for i in range(nk)]
+    fk2 = [np.sum(f2 * np.exp(1j * 2 * np.sum(x2 * -(G[i] + 1.0e-5), axis=1) * np.pi / L)) for i in range(nk)]
+    return fk1, fk2
