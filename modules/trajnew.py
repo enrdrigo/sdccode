@@ -248,13 +248,14 @@ def Ggenerateall(nk, Np, natpermol):
     for i in range(0, nkp):
         for j in range(0, nkp):
             for k in range(0, nkp):
+                if i == 0 and j == 0 and k == 0: continue
                 conta += 1
-                G[conta] = np.array([i, j, k])
                 if conta == nk:
                     Gmod = np.linalg.norm(G, axis=1)
                     return G[:, np.newaxis, :] * np.ones((nk, Np, 3)),\
                            G[:, np.newaxis, :] * np.ones((nk, int(Np / natpermol), 3)),\
                            Gmod[:, np.newaxis] * np.ones((nk, Np)), Gmod[:, np.newaxis] * np.ones((nk, int(Np / natpermol)))
+                G[conta] = np.array([i, j, k])
 
     Gmod = np.linalg.norm(G, axis=1)
     return G[:, np.newaxis, :] * np.ones((nk, Np, 3)), G[:, np.newaxis, :] * np.ones((nk, int(Np / natpermol), 3)),\

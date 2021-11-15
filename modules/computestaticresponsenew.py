@@ -53,11 +53,12 @@ def Ggeneratemodall(nk):
     for i in range(0, nkp):
         for j in range(0, nkp):
             for k in range(0, nkp):
+                if i==0 and j==0 and k==0 : continue
                 conta += 1
-                G[conta] = np.array([i, j, k])
                 if conta == nk:
                     Gmod = np.linalg.norm(G, axis=1)
                     return Gmod
+                G[conta] = np.array([i, j, k])
 
     Gmod = np.linalg.norm(G, axis=1)
     return Gmod

@@ -3,11 +3,11 @@ from modules import trajnew
 from modules import initialize
 
 root = './'
-filename = '../dump1.1fs.lammpstrj'
+filename = 'dump1.1fs.lammpstrj'
 fileinit = 'init.dat'
 
 posox = float(input('position of the oxy:>\n'))
-nkpoints = 1000
+nkpoints = 100
 ntrysnap = -1
 if os.path.exists(root+filename):
     inputcompute = initialize.getinitialize(filename, root, posox, nkpoints, ntrysnap)
