@@ -22,7 +22,7 @@ def read_dump(root, filename, Np, ntry):
             dump = h5py.File('dump.h5', 'a')
             lenght = 0
 
-        dump = h5py.File('dump.h5', 'a')
+        dump = h5py.File(root+'dump.h5', 'a')
         d = []
         start = time.time()
 
@@ -93,7 +93,7 @@ def computekftnumba(root, Np, L, posox, nk, ntry, natpermol):
     dipkx = []
     dipky = []
     ifprint = False
-    G, Gmol, Gmod, Gmodmol = Ggenerate(nk, Np, natpermol)
+    G, Gmol, Gmod, Gmodmol = Ggenerateall(nk, Np, natpermol)
     with open(root + 'output.out', 'a') as g:
         print('start the computation of the fourier transform of the densities')
         g.write('start the computation of the fourier transform of the densities\n')
@@ -149,7 +149,7 @@ def computekftnumba(root, Np, L, posox, nk, ntry, natpermol):
             enklist, chklist \
                 = numbacomputekft((en_at[:] - emp[:]), (ch_at[:]), \
                                   posatomic[:, :], pos_at[:, :], \
-                                  L, G, Gmol, Gmodmol, nk)
+                                  L, G, nk)
 
             # enklist = nfft_adjoint(posatomic[:,0]/L, (en_at[:]- emp[:]), Np)
 
@@ -240,6 +240,28 @@ def Ggenerate(nk, Np, natpermol):
         (nk, int(Np / natpermol), 3)), Gmod[:, np.newaxis] * np.ones((nk, Np)), Gmod[:, np.newaxis] * np.ones(
         (nk, int(Np / natpermol)))
 
+def Ggenerateall(nk, Np, natpermol):
+    G = np.zeros((nk, 3))
+    conta = 0
+    G[0] = np.array([0, 0, 0])
+    nkp = int(np.power(nk, 1/3))+1
+    for i in range(0, nkp):
+        for j in range(0, nkp):
+            for k in range(0, nkp):
+                conta += 1
+                G[conta] = np.array([i, j, k])
+                if conta == nk:
+                    Gmod = np.linalg.norm(G, axis=1)
+                    return G[:, np.newaxis, :] * np.ones((nk, Np, 3)),\
+                           G[:, np.newaxis, :] * np.ones((nk, int(Np / natpermol), 3)),\
+                           Gmod[:, np.newaxis] * np.ones((nk, Np)), Gmod[:, np.newaxis] * np.ones((nk, int(Np / natpermol)))
+
+    Gmod = np.linalg.norm(G, axis=1)
+    return G[:, np.newaxis, :] * np.ones((nk, Np, 3)), G[:, np.newaxis, :] * np.ones((nk, int(Np / natpermol), 3)),\
+           Gmod[:, np.newaxis] * np.ones((nk, Np)), Gmod[:, np.newaxis] * np.ones((nk, int(Np / natpermol)))
+
+
+
 
 def Ggeneratemod(nk):
     G = np.zeros((nk, 3))
@@ -265,7 +287,7 @@ def Ggeneratemod(nk):
     return Gmod
 
 
-@njit(fastmath=True, parallel=True)
+@njit(fastmath=True, parallel=False)
 def numbacomputekft(f1, f2, x1, x2, L, G, nk):
     fk1 = [np.sum(f1 * np.exp(1j * 2 * np.sum(x1 * -(G[i] + 1.0e-5), axis=1) * np.pi / L)) for i in range(nk)]
     fk2 = [np.sum(f2 * np.exp(1j * 2 * np.sum(x2 * -(G[i] + 1.0e-5), axis=1) * np.pi / L)) for i in range(nk)]

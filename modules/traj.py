@@ -22,7 +22,7 @@ def read_dump(root, filename, Np, ntry):
             dump = h5py.File('dump.h5', 'a')
             lenght = 0
 
-        dump = h5py.File('dump.h5', 'a')
+        dump = h5py.File(root+'dump.h5', 'a')
         d = []
         start = time.time()
 
@@ -290,7 +290,7 @@ def computekftnumba(root, Np, L, posox, nk, ntry, natpermol):
         return
 
 
-@njit(fastmath=True, parallel=True)
+@njit(fastmath=True, parallel=False)
 def numbacomputekft(f1, f2, f3, f4, f5, f6, x1, x2, x3, x4, x5, x6, L, nk):
 
     fk1 = [np.sum(f1 * np.exp(1j * x1 * 2 * -(i + np.sqrt(3.) * 1.0e-5) * np.pi / L)) for i in range(nk)]

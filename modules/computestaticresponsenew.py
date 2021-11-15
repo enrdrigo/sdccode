@@ -45,6 +45,24 @@ def Ggeneratemod(nk):
     return Gmod
 
 
+def Ggeneratemodall(nk):
+    G = np.zeros((nk, 3))
+    conta = 0
+    G[0] = np.array([0, 0, 0])
+    nkp = int(np.power(nk, 1 / 3)) + 1
+    for i in range(0, nkp):
+        for j in range(0, nkp):
+            for k in range(0, nkp):
+                conta += 1
+                G[conta] = np.array([i, j, k])
+                if conta == nk:
+                    Gmod = np.linalg.norm(G, axis=1)
+                    return Gmod
+
+    Gmod = np.linalg.norm(G, axis=1)
+    return Gmod
+
+
 def computestaticresponse(root, L, nk, temp):
     plot = False
 
@@ -62,7 +80,7 @@ def computestaticresponse(root, L, nk, temp):
     fac = (16.022 * 1.0e-30 * 4184 / 6.02214e23 * 1.0e-10 / (L ** 3 * 1.0e-30 * 1.38e-23 * temp * 8.854 * 1.0e-12))
     face = (16.022 ** 2) * 1.0e5 / (L ** 3 * 1.38 * temp * 8.854)
 
-    xk = Ggeneratemod(nk) * 2 * np.pi / L + np.sqrt(3.) * 1.0e-5 * 2 * np.pi / L
+    xk = Ggeneratemodall(nk) * 2 * np.pi / L + np.sqrt(3.) * 1.0e-5 * 2 * np.pi / L
 
     # xk = np.linspace(0, nk - 1, nk) * 2 * np.pi / L + np.sqrt(3.) * 1.0e-5 * 2 * np.pi / L
 
