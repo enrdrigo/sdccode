@@ -90,7 +90,7 @@ def bayesianpol(grid, sdata, M, N, alpha, x_infer, ifprint=False):
 
     sy_infer = np.diag(np.dot(Phi_infer.T, np.dot(SN, Phi_infer)))
 
-    if ifprint: print(y_infer[0], mN[0], data[0][0])
+    if ifprint: print(y_infer[0], mN[0], sdata[0][0])
 
     return mN, SN, y_infer, sy_infer
 
@@ -153,7 +153,7 @@ def bestfit(grid, sdata, N, x_infer, ifprintcubic=False, ifprintbestfit=False):
             alphaP = alpha1P
 
         if (abs(delta_alphaP / (alphaP + 0.1)) > 1e-10):
-            if ifprintbestfit: print('no convergence', N_low, N, x[-1], conta, delta_alphaP, alphaP, M_v)
+            if ifprintbestfit: print('no convergence', N, x[-1], conta, delta_alphaP, alphaP, M_v)
 
         Mv_list.append(M_v)
         alpha_vP.append(alphaP)
@@ -244,7 +244,7 @@ def bayesianmodelprediction(grid, sdata, N, x_infer, ifprintcubic=False, ifprint
             alphaP = alpha1P
 
         if (abs(delta_alphaP / (alphaP + 0.1)) > 1e-10):
-            if ifprintmodpred: print('no convergence', N_low, N, x[-1], conta, delta_alphaP, alphaP, M_v)
+            if ifprintmodpred: print('no convergence', N, x[-1], conta, delta_alphaP, alphaP, M_v)
             continue
         else:
             pcont += 1
