@@ -262,6 +262,23 @@ def Ggenerateall(nk, Np, natpermol):
            Gmod[:, np.newaxis] * np.ones((nk, Np)), Gmod[:, np.newaxis] * np.ones((nk, int(Np / natpermol)))
 
 
+def Gvecgenerateall(nk):
+    G = np.zeros((nk, 3))
+    conta = 0
+    G[0] = np.array([0, 0, 0])
+    nkp = int(np.power(nk, 1/3))+1
+    for i in range(0, nkp):
+        for j in range(0, nkp):
+            for k in range(0, nkp):
+                if i == 0 and j == 0 and k == 0: continue
+                conta += 1
+                if conta == nk:
+                    return G
+                G[conta] = np.array([i, j, k])
+
+    return G
+
+
 
 
 def Ggeneratemod(nk):
