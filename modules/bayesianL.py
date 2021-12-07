@@ -92,8 +92,9 @@ def bestfit(grid, sdata, N, x_infer, ifprintbestfit=False, ifprintfinal=False):
         # calcolo gli autovalori di Phi_vP, servono per la stima di alpha ottimale
         li_vP, ei_vP = eig(np.dot(Phi_vP, Phi_vP.T))
 
-        alpha0 = 1000
-        delta_alphaP = 1
+
+        alpha0 = 1
+        delta_alphaP = 0.1
         alphaP = alpha0
         conta = 0
 
