@@ -1,6 +1,7 @@
 import numpy as np
 from numpy.linalg import eig
 from . import cubicharmonics
+import logging
 
 
 def generatesorteddata(data, nk):
@@ -38,6 +39,7 @@ def bayesianpol(grid, sdata, M, N, alpha, x_infer, ifprint=False):
     # alpha e' il parametro di regolarizzazione.
     # x_infer sono i punti k dove voglio inferire il risultato.
     sigma_noise = sdata[1][:N]
+    logging.warning(str('HO IMPOSTATO A MANO CHE 2\PI/L = 0.13484487571168569'))
     x = grid[:N, :].T * 0.13484487571168569
     x_infer = grid[:N, :].T * 0.13484487571168569
     y_noise = sdata[0][:N]
