@@ -39,75 +39,45 @@ def bayesianpol(grid, sdata, M, N, alpha, x_infer, ifprint=False):
     # x_infer sono i punti k dove voglio inferire il risultato.
     sigma_noise = sdata[1][:N]
     x = grid[:N, :].T * 0.13484487571168569
-    if ifprint: print(x.shape)
+    x_infer = grid[:N, :].T * 0.13484487571168569
     y_noise = sdata[0][:N]
     betha = (1 / sigma_noise) ** 2
 
-    if ifprint: print(cubicharmonics.computecubicar(2, x.T).shape)
-
-    contanumpol = 1
-    Phi = [np.ones((x.shape[1])) * np.sqrt(betha)]
-    for i in range(1, M):
-        s = cubicharmonics.computecubicar(i, x.T)
-        contanumpol += s.shape[1]
-
-        if ifprint: print(contanumpol, i, Phi[0].shape, s.shape)
-
-        for j in range(s.shape[1]):
-            Phi = np.append(Phi, [s[:, j] * np.sqrt(betha)], axis=0)
-
-            if ifprint: print(contanumpol, 'in', Phi.shape)
-
-        Phi = np.array(Phi)
-
-        if ifprint: print(contanumpol, 'out', Phi.shape)
-    if M == 1: Phi = np.array(Phi)
+    Phi, contanumpol = computephicubicL(x, betha, M)
 
     SN_inv = alpha * np.identity(contanumpol) + np.dot(Phi, Phi.T)
     SN = np.linalg.inv(SN_inv)
     mN = np.dot(np.dot(SN, Phi), y_noise[:] * np.sqrt(betha))
 
-    if ifprint: print(mN)
-    if ifprint: print(cubicharmonics.computecubicar(2, x.T).shape)
+    if ifprint: print('parametri ottimali', mN)
+    if ifprint: print('numero di armoniche cubiche', cubicharmonics.computecubicar(M, x.T).shape[1])
 
-    Phi_infer = [np.ones((x.shape[1]))]
-    for i in range(1, M):
-        s = cubicharmonics.computecubicar(i, x.T)
-
-        if ifprint: print(i, Phi_infer[0].shape, s.shape)
-
-        for j in range(s.shape[1]):
-            Phi_infer = np.append(Phi_infer, [s[:, j]], axis=0)
-
-            if ifprint: print('in', Phi_infer.shape)
-
-        Phi_infer = np.array(Phi_infer)
-
-        if ifprint: print('out', Phi_infer.shape)
-    if M == 1: Phi_infer = np.array(Phi_infer)
+    Phi_infer, contanumpolinfer = computephicubicL(x_infer, np.ones(N), M)
 
     y_infer = np.dot(mN, Phi_infer)
 
     sy_infer = np.diag(np.dot(Phi_infer.T, np.dot(SN, Phi_infer)))
 
-    if ifprint: print(y_infer[0], mN[0], sdata[0][0])
+    if ifprint: print('valore a 0 inferito', y_infer[0], 'bias', mN[0], 'dato a kmin', sdata[0][0])
+    if ifprint: print('determinante matrice delle armoniche cubiche :', np.linalg.det(np.dot(Phi, Phi.T)))
 
     return mN, SN, y_infer, sy_infer
 
 
-def bestfit(grid, sdata, N, x_infer, ifprintcubic=False, ifprintbestfit=False):
+def bestfit(grid, sdata, N, x_infer, ifprintbestfit=False, ifprintfinal=False):
     # grid e' la griglia di punti k.
     # sdata sono i valori calcolati nella simualzione con la std dev dei dati.
     # N e' il numero di dati nel fit.
     # x_infer sono i punti k dove voglio inferire il risultato.
 
-    M_tot = 20
+    M_tot = 15
     # M_tot e' il numero massimo del grado del polinomio che considero
     log_evidence_vP = []
     alpha_vP = []
     betha_vP = np.zeros((M_tot))
     g_vP = np.zeros((M_tot))
     x = grid[:N, :].T * 0.13484487571168569
+    x_infer = grid[:N, :].T * 0.13484487571168569
     y_noise = sdata[0][:N]
     Mv_list = []
     sigma_noise = sdata[1][:N]
@@ -115,23 +85,7 @@ def bestfit(grid, sdata, N, x_infer, ifprintcubic=False, ifprintbestfit=False):
     for M_v in range(1, M_tot):  # number of parameters
 
         # calcolo il set di funzioni di base (armoniche cubiche) associate a questo grado M_v
-        contanumpol = 1
-        Phi_vP = [np.ones((x.shape[1])) * np.sqrt(betha0)]
-        for i in range(1, M_v):
-
-            s = cubicharmonics.computecubicar(i, x.T)
-            contanumpol += s.shape[1]
-
-            if ifprintcubic: print('numero di polinomi fino al grado', 2 * i, ':', contanumpol, \
-                                   'numero di armoniche cubiche:', s.shape[1] + 1)
-
-            for j in range(s.shape[1]):
-                Phi_vP = np.append(Phi_vP, [s[:, j] * np.sqrt(betha0)], axis=0)
-
-            Phi_vP = np.array(Phi_vP)
-
-        # contanumpol e' il numero di armoniche cubiche associate a M_v
-        if M_v == 1: Phi_vP = np.array(Phi_vP)
+        Phi_vP, contanumpol = computephicubicL(x, betha0, M_v)
 
         # calcolo gli autovalori di Phi_vP, servono per la stima di alpha ottimale
         li_vP, ei_vP = eig(np.dot(Phi_vP, Phi_vP.T))
@@ -159,29 +113,34 @@ def bestfit(grid, sdata, N, x_infer, ifprintcubic=False, ifprintbestfit=False):
         alpha_vP.append(alphaP)
 
         # mi preparo a calcolare la funzione di evidence per il valore ottimale di alpha
-        A_vP = np.linalg.inv(SN_vP)
+        A_vP = alphaP * np.identity(contanumpol) + np.dot(Phi_vP, Phi_vP.T)
         E_mNs_vP = 1 / 2 * (y_noise * np.sqrt(betha0) - np.dot(Phi_vP.T, mN_vP.T)) ** 2
         E_mN_vP = E_mNs_vP.sum()
         log_evidence_vP.append(M_v / 2 * np.log(np.abs(alphaP)) + N / 2 * np.sum(np.log(betha0)) - \
                                E_mN_vP - 1 / 2 * np.log(np.abs(np.linalg.det(A_vP))))
-        print(np.linalg.det(np.dot(Phi_vP, Phi_vP.T)))
-        if ifprintbestfit: print('numero di polinomi cubici fino al grado ', 2 * M_v, ':', contanumpol)
+        if ifprintbestfit: print('numero di polinomi cubici fino al grado massimo ', 2 * M_v, ':', contanumpol)
         if ifprintbestfit: print('best alpha:', alphaP, 'deltalpha:', delta_alphaP)
         if ifprintbestfit: print('logevidence:', M_v / 2 * np.log(np.abs(alphaP)) + N / 2 * np.sum(np.log(betha0)) - \
                                  E_mN_vP - 1 / 2 * np.log(np.abs(np.linalg.det(A_vP))))
+        if ifprintbestfit: print('contributi alla evidence:')
+        if ifprintbestfit: print('dalla normalizzazione ', M_v / 2 * np.log(np.abs(alphaP)), \
+                                 N / 2 * np.sum(np.log(betha0)))
+        if ifprintbestfit: print('dalla likelihood:', -E_mN_vP)
+        if ifprintbestfit: print('dalla derivata seconda della likelihood (log(det(A))):',- 1 / 2 * np.log(np.abs(np.linalg.det(A_vP))))
+        if ifprintbestfit: print('determinante della matrice delle armoniche cubiche', np.linalg.det(np.dot(Phi_vP, Phi_vP.T)),'\n')
 
     # valuto il grado ottimale del polinomio cercando il massimo della funzione di evidence
     index = log_evidence_vP.index(max(log_evidence_vP))
 
     # calcolo il fit bayesiano per il valore ottimale di alpha e per il grado che massimizza la evidence.
-    mN, SN, y_infer, sy_infer = bayesianpol(grid, sdata, Mv_list[index], N, alpha_vP[index], grid)
+    mN, SN, y_infer, sy_infer = bayesianpol(grid, sdata, Mv_list[index], N, alpha_vP[index], x_infer, True)
 
-    if ifprintbestfit: print('grado ottimale', 2 * (index + 1), 'grado massimo tentato', 2 * (M_tot - 1))
+    if ifprintfinal: print('grado ottimale', 2 * (index + 1), 'grado massimo tentato', 2 * (M_tot - 1))
 
-    return mN, SN, y_infer, sy_infer, log_evidence_vP
+    return mN, SN, y_infer, sy_infer, SN.diagonal(), log_evidence_vP
 
 
-def bayesianmodelprediction(grid, sdata, N, x_infer, ifprintcubic=False, ifprintmodpred=False):
+def bayesianmodelprediction(grid, sdata, N, x_infer, ifprintmodpred=False, ifprintfinal=False):
     # grid e' la griglia di punti k.
     # sdata sono i valori calcolati nella simualzione con la std dev dei dati.
     # N e' il numero di dati nel fit.
@@ -194,6 +153,7 @@ def bayesianmodelprediction(grid, sdata, N, x_infer, ifprintcubic=False, ifprint
     betha_vP = np.zeros((M_tot))
     g_vP = np.zeros((M_tot))
     x = grid[:N, :].T * 0.13484487571168569
+    x_infer = grid[:N, :].T * 0.13484487571168569
     y_noise = sdata[0][:N]
     Mv_list = []
     sigma_noise = sdata[1][:N]
@@ -205,25 +165,7 @@ def bayesianmodelprediction(grid, sdata, N, x_infer, ifprintcubic=False, ifprint
     for M_v in range(1, M_tot):  # number of parameters
 
         # calcolo il set di funzioni di base (armoniche cubiche) associate a questo grado M_v
-        contanumpol = 1
-        Phi_vP = [np.ones((x.shape[1])) * np.sqrt(betha0)]
-        for i in range(1, M_v):
-
-            s = cubicharmonics.computecubicar(i, x.T)
-            contanumpol += s.shape[1]
-
-            if ifprintcubic: print(contanumpol, i, Phi_vP[0].shape, s.shape)
-
-            for j in range(s.shape[1]):
-                Phi_vP = np.append(Phi_vP, [s[:, j] * np.sqrt(betha0)], axis=0)
-
-                if ifprintcubic: print(contanumpol, 'in', Phi_vP.shape)
-
-            Phi_vP = np.array(Phi_vP)
-
-            if ifprintcubic: print(contanumpol, 'out', Phi_vP.shape)
-        # contanumpol e' il numero di armoniche cubiche associate a M_v
-        if M_v == 1: Phi_vP = np.array(Phi_vP)
+        Phi_vP, contanumpol = computephicubicL(x, betha0, M_v)
 
         # calcolo gli autovalori di Phi_vP, servono per la stima di alpha ottimale
         li_vP, ei_vP = eig(np.dot(Phi_vP, Phi_vP.T))
@@ -250,28 +192,85 @@ def bayesianmodelprediction(grid, sdata, N, x_infer, ifprintcubic=False, ifprint
             pcont += 1
         Mv_list.append(M_v)
         alpha_vP.append(alphaP)
-
         # mi preparo a calcolare la funzione di evidence per il valore ottimale di alpha
-        A_vP = np.linalg.inv(SN_vP)
+        A_vP = alphaP * np.identity(contanumpol) + np.dot(Phi_vP, Phi_vP.T)
         E_mNs_vP = 1 / 2 * (y_noise * np.sqrt(betha0) - np.dot(Phi_vP.T, mN_vP.T)) ** 2
         E_mN_vP = E_mNs_vP.sum()
         log_evidence_vP.append(M_v / 2 * np.log(np.abs(alphaP)) + N / 2 * np.sum(np.log(betha0)) - \
                                E_mN_vP - 1 / 2 * np.log(np.abs(np.linalg.det(A_vP))))
 
-        if ifprintmodpred: print('numero di polinomi cubici di grado ', 2 * M_v, ':', contanumpol)
+        if ifprintmodpred: print('numero di polinomi cubici di grado massimo', 2 * M_v, ':', contanumpol)
         if ifprintmodpred: print('best alpha:', alphaP, 'deltalpha:', delta_alphaP)
         if ifprintmodpred: print('logevidence:', M_v / 2 * np.log(np.abs(alphaP)) + N / 2 * np.sum(np.log(betha0)) - \
                                  E_mN_vP - 1 / 2 * np.log(np.abs(np.linalg.det(A_vP))))
-        mN, SN, y_infer, sy_infer = bayesianpol(grid, sdata, M_v, N, alphaP, grid)
+        mN, SN, y_infer, sy_infer = bayesianpol(grid, sdata, M_v, N, alphaP, grid, ifprint=ifprintmodpred)
 
         mNs += mN[0] * np.exp(log_evidence_vP[pcont - 1] / log_evidence_vP[0])
-        if ifprintmodpred: print('determinante della matrice delle armoniche cubiche', np.linalg.det(A_vP))
+        if ifprintmodpred: print('determinante della matrice delle armoniche cubiche', np.linalg.det(np.dot(Phi_vP, Phi_vP.T)))
         mNa[M_v] = mN[0]
         SNs += SN[0, 0] * np.exp(log_evidence_vP[pcont - 1] / log_evidence_vP[0])
-        if ifprintmodpred: print('predizione a k=0 con polinomi di grado', 2 * M_v, ':', mN[0])
+        if ifprintmodpred: print('predizione a k=0 con polinomi di grado massimo', 2 * M_v, ':', mN[0], '\n')
 
     sr = np.var(mNa) / M_tot ** 2 + SNs / (sum(np.exp(log_evidence_vP / log_evidence_vP[0]))) ** 2
 
     mr = mNs / sum(np.exp(log_evidence_vP / log_evidence_vP[0]))
-    return mr, sr
+    if ifprintfinal: print('model average prediction',mr, np.sqrt(sr))
+    return mr, sr, log_evidence_vP
 
+
+def normalize(v, axi):
+    norm = np.linalg.norm(v, axis=int(axi))
+    if norm.any == 0:
+        return v
+    else:
+        return (v.T / norm).T
+
+
+def computephicubicL(x, betha0, M_v):
+    Phi_vP = [np.ones((x.shape[1])) * np.sqrt(betha0)]
+    contanumpol = 1
+    PhiL = np.zeros((3, x.shape[1]))
+    PhiL[0] = np.ones(x.shape[1])
+    PhiL[1] = 3 * x[2] ** 2 - (np.linalg.norm(x, axis=0)) ** 2
+    PhiL[2] = 35 * x[2] ** 4 - 30 * x[2] ** 2 * (np.linalg.norm(x, axis=0)) ** 2 + 3 * (np.linalg.norm(x, axis=0)) ** 4
+
+    PhiL = normalize(PhiL, 1)
+
+    for i in range(1, M_v):
+
+        s = cubicharmonics.computecubicar(i, x.T, False)
+        t = normalize(s.T, 1)
+        s = t.T
+        contanumpol += min(s.shape[1], 3)
+
+        # In PhiL ci sono le armoniche sferiche (numero di armoniche sferiche: #L),
+        # sto calcolando i prodotti scalari
+        PhicoeffL = s.T @ PhiL.T
+        # Contraggo le armoniche sferiche di grado 2*M_v per la matrice dei coefficienti (#x, #L)
+        Phirid = s @ PhicoeffL
+        for j in range(min(s.shape[1], 3)):
+            Phi_vP = np.append(Phi_vP, [Phirid[:, j] * np.sqrt(betha0)], axis=0)
+
+        Phi_vP = np.array(Phi_vP)
+    # contanumpol e' il numero di armoniche cubiche associate a M_v
+    if M_v == 1: Phi_vP = np.array(Phi_vP)
+
+    return Phi_vP, contanumpol
+
+
+def computephicubic(x, betha0, M_v):
+    contanumpol = 1
+    Phi = [np.ones((x.shape[1])) * np.sqrt(betha0)]
+    for i in range(1, M_v):
+        s = cubicharmonics.computecubicar(i, x.T, False)
+
+        contanumpol += s.shape[1]
+
+        for j in range(s.shape[1]):
+            Phi = np.append(Phi, [s[:, j] * np.sqrt(betha0)], axis=0)
+
+        Phi = np.array(Phi)
+
+    # contanumpol e' il numero di armoniche cubiche associate a M_v
+    if M_v == 1: Phi = np.array(Phi)
+    return Phi, contanumpol
