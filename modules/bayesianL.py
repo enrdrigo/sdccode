@@ -2,7 +2,7 @@ import numpy as np
 from numpy.linalg import eig
 from . import cubicharmonics
 import logging
-
+import copy
 
 def generatesorteddata(data, nk):
     G = cubicharmonics.Gvecgenerateall(nk)
@@ -91,6 +91,7 @@ def bestfit(grid, sdata, N, x_infer, ifprintbestfit=False, ifprintfinal=False):
 
         # calcolo gli autovalori di Phi_vP, servono per la stima di alpha ottimale
         li_vP, ei_vP = eig(np.dot(Phi_vP, Phi_vP.T))
+        # salto quando il determinante della matrice delle armiche cubiche ridotte e' troppo piccolo
         if abs(np.prod(li_vP))<1.0e-5:
             if ifprintbestfit: print('determinante della martice delle armoniche cubiche minore di 1.0e-5, salto')
             continue
@@ -289,3 +290,83 @@ def computephicubic(x, betha0, M_v):
     # contanumpol e' il numero di armoniche cubiche associate a M_v
     if M_v == 1: Phi = np.array(Phi)
     return Phi, contanumpol
+
+
+def cubicarray(MM, pr=False):
+    if pr: print('numero di elementi: ', len(MM))
+    # In input bisogna fornire la lista dei monomi M. Ogni elemento della lista M e'
+    # una lista [a,b,c] tale per cui M_i=x^{2a}y^{2b}z^{2c} e a+b+c=n, dove n e' il grado del monomio.
+    # I monomi in input comprendono tutte le permutazioni.
+    # Voglio ora applicare le permutazioni x,y,z in modo da simmetrizzare i monomi e ottenere le armoniche cubiche.
+    lenM = len(MM)
+    M = []
+    # Converto M a una lista di liste
+    for i in range(len(MM)):
+        M.append(list(MM[i]))
+    Mt = copy.copy(M)
+    # devo prima capire nella base dei monomi quali sono legati da permutazione. posso nominarli.
+    nameC = []
+    conta = 0
+    contaci = 0
+    if pr: print('numero cicli teornicamente necessari', int(len(M) ** 2 * 3 / 2))
+    for i in range(lenM):
+        rep = M[i]
+        # rep (M[i]) e' il mio rappresentante nella lista,
+        # voglio vedere quali altri elementi sono equivalenti per permutazione a rep
+        nameC_i = []
+        if not (rep in Mt): continue
+        # se rep non sta nella lista temporanea Mt significa che e' equivalente a un elemento precedente: salto il ciclo
+        nameC_i.append(np.array(rep))
+        # in nameC_i inserisco gli elementi equivalenti per simmetria a rep
+        for j in range(i + 1, lenM):
+            # parto a cercare dall'elemento successivo nella lista, gli altri li ho gia' sicuramente controllati.
+            Mjt = list(copy.copy(M[j]))
+
+            if rep[0] in Mjt:
+                Mjt.remove(rep[0])
+                if rep[1] in Mjt:
+                    Mjt.remove(rep[1])
+                    if rep[2] in Mjt:
+                        # rep e M[j] sono simmetrici per permutazione!
+                        nameC_i.append(np.array(M[j]))
+                        Mt.remove(M[j])
+
+                        # rimuovo da Mt l'elemento M[j] che e' simmetrico per permutazione a rep
+                        conta += 1
+        contaci += len(nameC_i)
+        nameC.append(nameC_i)
+        # aggiungo la lista degli elementi associati a M[i], nameC_i, alla lista degli elementi NON equivalenti, nameC!
+    if contaci != len(M): raise ValueError
+    if pr: print('numero cicli compiuti', conta)
+    if pr: print('numero di elementi non equivalenti per simmetria cubica: ', len(nameC))
+    # in output c'e' la lista degli elementi che formano una classe di equivalenza.
+    return nameC
+
+
+def datadicG(data, sigmadata, G):
+    dicdata = {}
+
+    dicsigma = {}
+
+    for i in range(len(G)):
+        dicdata[tuple(G[i])] = data[i]
+        dicsigma[tuple(G[i])] = sigmadata[i]
+
+    return dicdata, dicsigma
+
+
+def datiplot(C, dic, dics):
+    gplot = []
+    dataplot = []
+    datasigmaplot = []
+    for i in range(len(C)):
+        gplot.append(C[i][0])
+        dataav = 0
+        datasigma = 0
+        for j in range(len(C[i])):
+            dataav += dic[tuple(C[i][j])] / len(C[i])
+            datasigma += (dics[tuple(C[i][j])] / len(C[i])) ** 2
+        dataplot.append(dataav)
+        datasigmaplot.append(np.sqrt(datasigma))
+
+    return np.array(gplot), np.array(dataplot), np.array(datasigmaplot)
