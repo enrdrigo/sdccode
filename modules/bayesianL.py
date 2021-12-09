@@ -31,7 +31,7 @@ def generatesorteddata(data, nk):
     return sdata, grid
 
 
-def bayesianpol(grid, sdata, M, N, alpha, x_infer, ifprint=False):
+def bayesianpol(grid, sdata, M, N, alpha, x_infer, ifprint=False, ifwarning=True):
     # grid e' la griglia di punti k.
     # data sono i valori calcolati nella simualzione con la std dev dei dati.
     # M e' il grado massimo dei polinomi che considero.
@@ -39,7 +39,8 @@ def bayesianpol(grid, sdata, M, N, alpha, x_infer, ifprint=False):
     # alpha e' il parametro di regolarizzazione.
     # x_infer sono i punti k dove voglio inferire il risultato.
     sigma_noise = sdata[1][:N]
-    logging.warning(str('HO IMPOSTATO A MANO CHE 2\PI/L = 0.13484487571168569'))
+    if ifwarning:
+        logging.warning(str('HO IMPOSTATO A MANO CHE 2\PI/L = 0.13484487571168569'))
     x = grid[:N, :].T * 0.13484487571168569
     x_infer = grid[:N, :].T * 0.13484487571168569
     y_noise = sdata[0][:N]
@@ -140,7 +141,7 @@ def bestfit(grid, sdata, N, x_infer, ifprintbestfit=False, ifprintfinal=False):
     index = log_evidence_vP.index(max(log_evidence_vP))
 
     # calcolo il fit bayesiano per il valore ottimale di alpha e per il grado che massimizza la evidence.
-    mN, SN, y_infer, sy_infer = bayesianpol(grid, sdata, Mv_list[index], N, alpha_vP[index], x_infer, True)
+    mN, SN, y_infer, sy_infer = bayesianpol(grid, sdata, Mv_list[index], N, alpha_vP[index], x_infer, ifprint=ifprintfinal, ifwarning=False)
 
     if ifprintfinal: print('grado ottimale', 2 * (index + 1), 'grado massimo tentato', 2 * (M_tot - 1))
 
@@ -219,7 +220,7 @@ def bayesianmodelprediction(grid, sdata, N, x_infer, ifprintmodpred=False, ifpri
         if ifprintmodpred: print('logevidence:', M_v / 2 * np.log(np.abs(alphaP)) + N / 2 * np.sum(np.log(betha0)) - \
                                  E_mN_vP - 1 / 2 * np.log(np.abs(np.linalg.det(A_vP))))
 
-        mN, SN, y_infer, sy_infer = bayesianpol(grid, sdata, M_v, N, alphaP, grid, ifprint=ifprintmodpred)
+        mN, SN, y_infer, sy_infer = bayesianpol(grid, sdata, M_v, N, alphaP, grid, ifprint=ifprintmodpred, ifwarning=False)
         mNs += mN[0] * np.exp(log_ev / log_evidence_vP[0])
 
         if ifprintmodpred: print('determinante della matrice delle armoniche cubiche ridotte', np.linalg.det(np.dot(Phi_vP, Phi_vP.T)))
