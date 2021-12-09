@@ -60,8 +60,8 @@ def bayesianpol(grid, sdata, M, N, alpha, x_infer, ifprint=False):
 
     sy_infer = np.diag(np.dot(Phi_infer.T, np.dot(SN, Phi_infer)))
 
-    if ifprint: print('valore a 0 inferito', y_infer[0], 'bias', mN[0], 'dato a kmin', sdata[0][0])
-    if ifprint: print('determinante matrice delle armoniche cubiche :', np.linalg.det(np.dot(Phi, Phi.T)))
+    if ifprint: print('valore a kmin inferito', y_infer[0], 'bias', mN[0], 'dato a kmin', sdata[0][0])
+    if ifprint: print('determinante matrice delle armoniche cubiche ridotte:', np.linalg.det(np.dot(Phi, Phi.T)))
 
     return mN, SN, y_infer, sy_infer
 
@@ -91,7 +91,7 @@ def bestfit(grid, sdata, N, x_infer, ifprintbestfit=False, ifprintfinal=False):
 
         # calcolo gli autovalori di Phi_vP, servono per la stima di alpha ottimale
         li_vP, ei_vP = eig(np.dot(Phi_vP, Phi_vP.T))
-
+        if abs(np.prod(li_vP))<1.0e-5: continue
 
         alpha0 = 1
         delta_alphaP = 0.1
@@ -130,7 +130,7 @@ def bestfit(grid, sdata, N, x_infer, ifprintbestfit=False, ifprintfinal=False):
                                  N / 2 * np.sum(np.log(betha0)))
         if ifprintbestfit: print('dalla likelihood:', -E_mN_vP)
         if ifprintbestfit: print('dalla derivata seconda della likelihood (log(det(A))):',- 1 / 2 * np.log(np.abs(np.linalg.det(A_vP))))
-        if ifprintbestfit: print('determinante della matrice delle armoniche cubiche', np.linalg.det(np.dot(Phi_vP, Phi_vP.T)),'\n')
+        if ifprintbestfit: print('determinante della matrice delle armoniche cubiche ridotte', np.linalg.det(np.dot(Phi_vP, Phi_vP.T)),'\n')
 
     # valuto il grado ottimale del polinomio cercando il massimo della funzione di evidence
     index = log_evidence_vP.index(max(log_evidence_vP))
@@ -209,7 +209,7 @@ def bayesianmodelprediction(grid, sdata, N, x_infer, ifprintmodpred=False, ifpri
         mN, SN, y_infer, sy_infer = bayesianpol(grid, sdata, M_v, N, alphaP, grid, ifprint=ifprintmodpred)
 
         mNs += mN[0] * np.exp(log_evidence_vP[pcont - 1] / log_evidence_vP[0])
-        if ifprintmodpred: print('determinante della matrice delle armoniche cubiche', np.linalg.det(np.dot(Phi_vP, Phi_vP.T)))
+        if ifprintmodpred: print('determinante della matrice delle armoniche cubiche ridotte', np.linalg.det(np.dot(Phi_vP, Phi_vP.T)))
         mNa[M_v] = mN[0]
         SNs += SN[0, 0] * np.exp(log_evidence_vP[pcont - 1] / log_evidence_vP[0])
         if ifprintmodpred: print('predizione a k=0 con polinomi di grado massimo', 2 * M_v, ':', mN[0], '\n')
