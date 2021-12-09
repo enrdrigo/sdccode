@@ -91,7 +91,9 @@ def bestfit(grid, sdata, N, x_infer, ifprintbestfit=False, ifprintfinal=False):
 
         # calcolo gli autovalori di Phi_vP, servono per la stima di alpha ottimale
         li_vP, ei_vP = eig(np.dot(Phi_vP, Phi_vP.T))
-        if abs(np.prod(li_vP))<1.0e-5: continue
+        if abs(np.prod(li_vP))<1.0e-5:
+            if ifprintbestfit: print('determinante della martice delle armoniche cubiche minore di 1.0e-5, salto')
+            continue
 
         alpha0 = 1
         delta_alphaP = 0.1
@@ -111,6 +113,7 @@ def bestfit(grid, sdata, N, x_infer, ifprintbestfit=False, ifprintfinal=False):
 
         if (abs(delta_alphaP / (alphaP + 0.1)) > 1e-10):
             if ifprintbestfit: print('no convergence', N, x[-1], conta, delta_alphaP, alphaP, M_v)
+            continue
 
         Mv_list.append(M_v)
         alpha_vP.append(alphaP)
@@ -163,7 +166,7 @@ def bayesianmodelprediction(grid, sdata, N, x_infer, ifprintmodpred=False, ifpri
     betha0 = (1 / sigma_noise) ** 2
     mNs = 0
     SNs = 0
-    mNa = np.zeros(M_tot)
+    mNa = []#np.zeros(M_tot)
     pcont = 0
     for M_v in range(1, M_tot):  # number of parameters
 
@@ -188,11 +191,17 @@ def bayesianmodelprediction(grid, sdata, N, x_infer, ifprintmodpred=False, ifpri
             delta_alphaP = alpha1P - alphaP
             alphaP = alpha1P
 
-        if (abs(delta_alphaP / (alphaP + 0.1)) > 1e-10):
-            if ifprintmodpred: print('no convergence', N, x[-1], conta, delta_alphaP, alphaP, M_v)
+        if (abs(delta_alphaP / (alphaP + 0.1)) > 1e-10 or abs(np.prod(li_vP))<1.0e-5):
+            if (abs(delta_alphaP / (alphaP + 0.1)) > 1e-10):
+                if ifprintmodpred: print('no convergence', N, x[-1], conta, delta_alphaP, alphaP, M_v)
+            if abs(np.prod(li_vP)) < 1.0e-5:
+                if ifprintmodpred: print('determinante della martice delle armoniche cubiche ridotte di grado', 2*M_v,\
+                                         ' minore di 1.0e-5, salto')
             continue
         else:
             pcont += 1
+
+
         Mv_list.append(M_v)
         alpha_vP.append(alphaP)
         # mi preparo a calcolare la funzione di evidence per il valore ottimale di alpha
@@ -201,20 +210,23 @@ def bayesianmodelprediction(grid, sdata, N, x_infer, ifprintmodpred=False, ifpri
         E_mN_vP = E_mNs_vP.sum()
         log_evidence_vP.append(M_v / 2 * np.log(np.abs(alphaP)) + N / 2 * np.sum(np.log(betha0)) - \
                                E_mN_vP - 1 / 2 * np.log(np.abs(np.linalg.det(A_vP))))
+        log_ev = M_v / 2 * np.log(np.abs(alphaP)) + N / 2 * np.sum(np.log(betha0)) - \
+                               E_mN_vP - 1 / 2 * np.log(np.abs(np.linalg.det(A_vP)))
 
         if ifprintmodpred: print('numero di polinomi cubici di grado massimo', 2 * M_v, ':', contanumpol)
         if ifprintmodpred: print('best alpha:', alphaP, 'deltalpha:', delta_alphaP)
         if ifprintmodpred: print('logevidence:', M_v / 2 * np.log(np.abs(alphaP)) + N / 2 * np.sum(np.log(betha0)) - \
                                  E_mN_vP - 1 / 2 * np.log(np.abs(np.linalg.det(A_vP))))
-        mN, SN, y_infer, sy_infer = bayesianpol(grid, sdata, M_v, N, alphaP, grid, ifprint=ifprintmodpred)
 
-        mNs += mN[0] * np.exp(log_evidence_vP[pcont - 1] / log_evidence_vP[0])
+        mN, SN, y_infer, sy_infer = bayesianpol(grid, sdata, M_v, N, alphaP, grid, ifprint=ifprintmodpred)
+        mNs += mN[0] * np.exp(log_ev / log_evidence_vP[0])
+
         if ifprintmodpred: print('determinante della matrice delle armoniche cubiche ridotte', np.linalg.det(np.dot(Phi_vP, Phi_vP.T)))
-        mNa[M_v] = mN[0]
-        SNs += SN[0, 0] * np.exp(log_evidence_vP[pcont - 1] / log_evidence_vP[0])
+        mNa.append( mN[0])
+        SNs += SN[0, 0] * np.exp(log_ev / log_evidence_vP[0])
         if ifprintmodpred: print('predizione a k=0 con polinomi di grado massimo', 2 * M_v, ':', mN[0], '\n')
 
-    sr = np.var(mNa) / M_tot ** 2 + SNs / (sum(np.exp(log_evidence_vP / log_evidence_vP[0]))) ** 2
+    sr = np.var(np.array(mNa)) / M_tot ** 2 + SNs / (sum(np.exp(np.array(log_evidence_vP) / log_evidence_vP[0]))) ** 2
 
     mr = mNs / sum(np.exp(log_evidence_vP / log_evidence_vP[0]))
     if ifprintfinal: print('model average prediction',mr, np.sqrt(sr))
