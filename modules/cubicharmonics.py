@@ -26,7 +26,7 @@ def Gvecgenerateall(nk):
 
 
 def basis(n):
-    # n e' il grado del monomio,
+    # n*2 e' il grado del monomio,
     # dato che uso solo monomi di ordine pari voglio sapere quanti x^2, y^2, z^2 ci sono in ogni monomio.
     # ogni monomio e' una lista [a,b,c] tale per cui M_i=x^{2a}y^{2b}z^{2c} e a+b+c=n.
     M = []
