@@ -102,7 +102,8 @@ def computecubicar(N, G, pr=False):
     if pr: print('numero di armoniche cubiche di grado ', N * 2, ' : ', len(C))
 
     for i in range(len(C)):
-        if pr: print(C[i])
+        if pr:
+            print(C[i], i)
 
     M = len(C)
 

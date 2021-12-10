@@ -250,20 +250,26 @@ def computephicubicL(x, betha0, M_v, nL=2):
     PhiL[0] = 1/np.sqrt(4*np.pi)*np.ones(x.shape[1])
     PhiL[1] = np.sqrt(5/16/np.pi)*(3 * x[2] ** 2 - (np.linalg.norm(x, axis=0)) ** 2)/(np.linalg.norm(x, axis=0)) ** 2
     PhiL[2] = np.sqrt(9/256/np.pi)*(35 * x[2] ** 4 - 30 * x[2] ** 2 * (np.linalg.norm(x, axis=0)) ** 2 + 3 * (np.linalg.norm(x, axis=0)) ** 4)/(np.linalg.norm(x, axis=0)) ** 4
-
     for i in range(1, M_v):
 
-        s = cubicharmonics.computecubicar(i, x.T, False)
+        s = cubicharmonics.computecubicar(i, x.T, True)
         #divido le armoniche cubiche s per r**2i cosi' da avere solo i contributi delle armoniche sferiche e normalizzo, ottengo le nuove armoniche srid
         sridnorm = s.T / (np.linalg.norm(x, axis=0)) ** (2 * i)
         srid = copy.copy(sridnorm.T)
         t = s.T
         s = copy.copy(t.T)
         contanumpol += min(s.shape[1], nL+1)
-
+        test = np.zeros((s.shape[1], nL+1))
         # In PhiL ci sono le armoniche sferiche normalizzate (in \theta e \phi) (numero di armoniche sferiche: #L),
         # sto calcolando i prodotti scalari con srid ((#L,#x)(#x, #c)).T-->(#c, #L)
+        #STO FACENDO L'INTEGRALE SUL VOLUME NOOOOOOO DEVO FARLO SUGLI ANGOLI
         PhicoeffL = (PhiL[:nL+1]@srid).T
+        for j in range(nL+1):
+            for q in range(s.shape[1]):
+                test[q, j]=np.sum(srid[:,q]*PhiL[j,:])
+                print(test[q, j],q, j)
+        for j in range(PhicoeffL.shape[1]):
+            print(PhicoeffL[j,:], j)
         # Contraggo le armoniche cubiche ridotte di grado 2*M_v per la matrice dei coefficienti (#x, #c)(#c, #L)-->(#x, #L)
         Phirid = ((srid@PhicoeffL).T*(np.linalg.norm(x, axis=0)) ** (2 * i)).T#(PhiL[:nL+1]*(np.linalg.norm(x, axis=0)) ** (2 * i)).T
         for j in range(min(s.shape[1], nL+1)):
