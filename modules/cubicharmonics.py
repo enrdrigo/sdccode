@@ -117,3 +117,24 @@ def computecubicar(N, G, pr=False):
                                   (G[i, 1] ** (np.array(C[s])[t][1])) * (G[i, 2] ** (np.array(C[s])[t][2]))
     return Cfun
 
+def computecubicarangular(N, G, pr=False):
+    # G e' la lista di punti 3D dove sto samplando le armoniche cubiche
+    C = cubicarmonic(basis(N))
+
+    if pr: print('numero di armoniche cubiche di grado ', N * 2, ' : ', len(C))
+
+    for i in range(len(C)):
+        if pr:
+            print(C[i], i)
+
+    M = len(C)
+
+    nk = len(G)
+
+    Cfun = np.zeros((nk, M))
+    for i in range(0, nk):
+        for s in range(M):
+            for t in range(len(C[s])):
+                Cfun[i, s] += ((np.sin(G[i, 0])*np.cos(G[i, 1])) ** (np.array(C[s])[t][0])) * \
+                                  ((np.sin(G[i, 0])*np.sin(G[i, 1])) ** (np.array(C[s])[t][1])) * ((np.cos(G[i, 0])) ** (np.array(C[s])[t][2]))
+    return Cfun
