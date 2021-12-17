@@ -91,15 +91,18 @@ def bestfit(grid, sdata, N, x_infer, ifbetha=False, ifprintbestfit=False, ifprin
         Phi_vP, contanumpol = computephicubichandL(x, betha0, M_v, nL=nLbf)
 
         # calcolo gli autovalori di Phi_vP, servono per la stima di alpha ottimale. Sono gli autovalori di
-        li_vP, ei_vP = eig(np.dot(Phi_vP, Phi_vP.T))
+        li_vP0, ei_vP = eig(np.dot(Phi_vP, Phi_vP.T))
         # salto quando il determinante della matrice delle armiche cubiche ridotte e' troppo piccolo
-        if abs(np.prod(li_vP))<1.0e-100:
+        if abs(np.prod(li_vP0))<1.0e-100:
             if ifprintbestfit: print('determinante della martice delle armoniche cubiche minore di 1.0e-5, salto')
             continue
-        bethap0 = 1.0e0
-        alpha0 = 1.0e-0
-        delta_alphaP = 0.1
-        delta_alphaP = 0.1
+        if ifbetha:
+            bethaP=240
+        else:
+            bethap0 = 1
+        alpha0 = 1e-3
+        delta_alphaP = 1
+        delta_alphaP = 1
         alphaP = alpha0
         bethaP = bethap0
         conta = 0
@@ -107,7 +110,7 @@ def bestfit(grid, sdata, N, x_infer, ifbetha=False, ifprintbestfit=False, ifprin
         # inizio il ciclo self-consistente per ottenere il valore migliore di alpha
         while abs(delta_alphaP / (alphaP + 0.1)) > 1e-10 and conta < 1.0e3:
             conta += 1
-
+            li_vP = li_vP0 * bethaP
             SN_vP = np.linalg.inv(alphaP * np.identity(contanumpol) + bethaP * np.dot(Phi_vP, Phi_vP.T))
             mN_vP = bethaP * np.dot(np.dot(SN_vP, Phi_vP), y_noise * np.sqrt(betha0))
             g_vP = np.sum(li_vP.real / (alphaP + li_vP.real))
